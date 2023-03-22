@@ -32,13 +32,6 @@ var (
 
 const (
 	binaryName              = "template"
-	optAccessToken          = "access-token"
-	optAccount              = "account"
-	optBaseURL              = "base-url"
-	optCollaboratorID       = "collaborator-id"
-	optConfigFile           = "config-file"
-	optConfirm              = "confirm"
-	optDomain               = "domain"
 	defaultConfigFileFormat = "yaml"
 	defaultProfile          = "default"
 	envDev                  = "DEV"
@@ -52,6 +45,13 @@ const (
 	formatTable             = "table"
 	formatText              = "text"
 	formatYAML              = "yaml"
+	optAccessToken          = "access-token"
+	optAccount              = "account"
+	optBaseURL              = "base-url"
+	optCollaboratorID       = "collaborator-id"
+	optConfigFile           = "config-file"
+	optConfirm              = "confirm"
+	optDomain               = "domain"
 	optOutput               = "output"
 	optPage                 = "page"
 	optPerPage              = "per-page"
@@ -77,7 +77,7 @@ func Run() error {
 	return RunWithOptions(opts)
 }
 
-func cmdRoot(opts *Options) *Command {
+func cmdRoot(opts *Options) *Cmd {
 	cobra.OnInitialize(initConfig)
 
 	cmd := &cobra.Command{
@@ -85,7 +85,7 @@ func cmdRoot(opts *Options) *Command {
 		SilenceUsage: true,
 	}
 
-	return createCommand(
+	return newCmd(
 		cmd,
 		withSubcommand(cmdFoo(opts)),
 		withSubcommand(cmdConfig(opts)),
@@ -131,18 +131,27 @@ func initConfig() {
 	}
 }
 
-type Command struct {
+type Cmd struct {
 	*cobra.Command
 }
 
-type commandOption func(*cobra.Command)
+type cmdOption func(*cobra.Command)
 
-func createCommand(c *cobra.Command, opts ...commandOption) *Command {
+func newCmd(c *cobra.Command, opts ...cmdOption) *Cmd {
 	for _, opt := range opts {
 		opt(c)
 	}
 
-	return &Command{
+	return &Cmd{
 		Command: c,
 	}
+}
+
+type Error struct {
+	Code int
+	Err  error
+}
+
+func (e Error) Error() string {
+	return e.Err.Error()
 }

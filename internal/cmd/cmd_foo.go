@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func cmdFoo(opts *Options) *Command {
+func cmdFoo(opts *Options) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "foo",
 		Short: "List accounts",
@@ -39,8 +39,7 @@ func cmdFoo(opts *Options) *Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.New()
 			if err != nil {
-				// TODO: pretty print error
-				return err
+				return newError(1, err)
 			}
 
 			cmd.Println(cfg)
@@ -49,10 +48,17 @@ func cmdFoo(opts *Options) *Command {
 		},
 	}
 
-	return createCommand(
+	return newCmd(
 		cmd,
 		withOutputFlag(formatTable),
 		withQueryFlag(),
 		withOptions(opts),
 	)
+}
+
+func newError(code int, err error) Error {
+	return Error{
+		Code: code,
+		Err:  err,
+	}
 }

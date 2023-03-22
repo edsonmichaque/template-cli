@@ -24,6 +24,10 @@ import (
 
 func main() {
 	if err := cmd.Run(); err != nil {
+		if cmdErr, ok := err.(cmd.Error); ok {
+			os.Exit(cmdErr.Code)
+		}
+
 		os.Exit(1)
 	}
 }

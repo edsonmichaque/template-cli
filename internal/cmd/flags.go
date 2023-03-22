@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func withGlobalFlags() commandOption {
+func withGlobalFlags() cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.PersistentFlags().Bool(optSandbox, false, "Sandbox environment")
 		cmd.PersistentFlags().String(optAccessToken, "", "Access token")
@@ -24,20 +24,20 @@ func withGlobalFlags() commandOption {
 }
 
 // withOutputFlag adds output flag to command
-func withOutputFlag(value string) commandOption {
+func withOutputFlag(value string) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optOutput, "o", value, "Output format")
 	}
 }
 
 // withQueryFlag adds query flag to command
-func withQueryFlag() commandOption {
+func withQueryFlag() cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optQuery, "q", "", "Query")
 	}
 }
 
-func withOptions(opts *Options) commandOption {
+func withOptions(opts *Options) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.SetOutput(opts.Stdout)
 		cmd.SetIn(opts.Stdin)
@@ -46,7 +46,7 @@ func withOptions(opts *Options) commandOption {
 }
 
 // withSubcommand adds subcommand to command
-func withSubcommand(children ...*Command) commandOption {
+func withSubcommand(children ...*Cmd) cmdOption {
 	return func(cmd *cobra.Command) {
 		for _, c := range children {
 			cmd.AddCommand(c.Command)
@@ -55,7 +55,7 @@ func withSubcommand(children ...*Command) commandOption {
 }
 
 // withDomainFlag adds domain flag to command
-func withDomainFlag(value string) commandOption {
+func withDomainFlag(value string) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optDomain, "d", value, "Domain")
 	}
