@@ -19,7 +19,7 @@ package main
 import (
 	"os"
 
-	"github.com/edsomichaque/template-cli/internal/cmd"
+	"github.com/edsonmichaque/template-cli/internal/cmd"
 )
 
 func main() {

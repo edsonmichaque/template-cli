@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/edsomichaque/template-cli/internal/config"
+	"github.com/edsonmichaque/template-cli/internal/config"
 )
 
 func runConfirm(domain string) bool {

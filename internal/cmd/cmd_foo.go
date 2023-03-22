@@ -18,7 +18,7 @@ package cmd
 
 import (
 	"github.com/MakeNowJust/heredoc/v2"
-	"github.com/edsomichaque/template-cli/internal/config"
+	"github.com/edsonmichaque/template-cli/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

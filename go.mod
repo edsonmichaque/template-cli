@@ -1,4 +1,4 @@
-module github.com/edsomichaque/template-cli
+module github.com/edsonmichaque/template-cli
 
 go 1.19
 
