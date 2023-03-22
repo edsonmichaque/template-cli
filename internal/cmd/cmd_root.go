@@ -64,11 +64,20 @@ const (
 	pathTemplate            = "template"
 )
 
-func Run(opts *Options) error {
-	return CmdRoot(opts).Execute()
+func RunWithOptions(opts *Options) error {
+	return cmdRoot(opts).Execute()
 }
 
-func CmdRoot(opts *Options) *Command {
+func Run() error {
+	opts, err := NewOptions()
+	if err != nil {
+		return err
+	}
+
+	return RunWithOptions(opts)
+}
+
+func cmdRoot(opts *Options) *Command {
 	cobra.OnInitialize(initConfig)
 
 	cmd := &cobra.Command{

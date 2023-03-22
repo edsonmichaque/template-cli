@@ -23,12 +23,7 @@ import (
 )
 
 func main() {
-	opts, err := cmd.NewOptions()
-	if err != nil {
-		panic(err)
-	}
-
-	if err := cmd.Run(opts); err != nil {
+	if err := cmd.Run(); err != nil {
 		os.Exit(1)
 	}
 }
