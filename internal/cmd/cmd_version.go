@@ -25,8 +25,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-func CmdVersion(opts *Options) *cobra.Command {
-	cmd := createCmd(&cobra.Command{
+func cmdVersion(opts *Options) *Command {
+	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Check version",
 		Args:  cobra.NoArgs,
@@ -52,7 +52,7 @@ func CmdVersion(opts *Options) *cobra.Command {
 
 			return nil
 		},
-	}, opts)
+	}
 
-	return cmd
+	return createCommand(cmd, withOptions(opts))
 }

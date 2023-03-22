@@ -23,8 +23,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-func CmdFoo(opts *Options) *cobra.Command {
-	cmd := createCmd(&cobra.Command{
+func cmdFoo(opts *Options) *Command {
+	cmd := &cobra.Command{
 		Use:   "foo",
 		Short: "List accounts",
 		Example: heredoc.Doc(`
@@ -47,10 +47,12 @@ func CmdFoo(opts *Options) *cobra.Command {
 
 			return nil
 		},
-	}, opts)
+	}
 
-	applyOutputFlag(cmd, formatTable)
-	applyQueryFlag(cmd)
-
-	return cmd
+	return createCommand(
+		cmd,
+		withOutputFlag(formatTable),
+		withQueryFlag(),
+		withOptions(opts),
+	)
 }

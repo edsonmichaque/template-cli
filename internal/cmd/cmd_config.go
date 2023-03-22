@@ -41,30 +41,30 @@ var (
 	sandboxBaseURL = "https://api.sandbox.dnsimple.com"
 
 	configProps = map[string]struct{}{
-		configAccount:     {},
-		configBaseURL:     {},
-		configAccessToken: {},
-		optSandbox:        {},
+		optAccount:     {},
+		optBaseURL:     {},
+		optAccessToken: {},
+		optSandbox:     {},
 	}
 
 	validateConfig = map[string]func(string) (interface{}, error){
 		optSandbox: func(value string) (interface{}, error) {
 			return strconv.ParseBool(value)
 		},
-		configAccount: func(value string) (interface{}, error) {
+		optAccount: func(value string) (interface{}, error) {
 			return strconv.ParseInt(value, 10, 64)
 		},
-		configBaseURL: func(value string) (interface{}, error) {
+		optBaseURL: func(value string) (interface{}, error) {
 			return value, nil
 		},
-		configAccessToken: func(value string) (interface{}, error) {
+		optAccessToken: func(value string) (interface{}, error) {
 			return value, nil
 		},
 	}
 )
 
-func CmdConfig(opts *Options) *cobra.Command {
-	cmd := createCmd(&cobra.Command{
+func cmdConfig(opts *Options) *Command {
+	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage configurations",
 		Args:  cobra.NoArgs,
@@ -88,10 +88,10 @@ func CmdConfig(opts *Options) *cobra.Command {
 			}
 
 			v := viper.New()
-			v.Set(configAccount, cfg.Account)
-			v.Set(configAccessToken, cfg.AccessToken)
+			v.Set(optAccount, cfg.Account)
+			v.Set(optAccessToken, cfg.AccessToken)
 			if cfg.BaseURL != "" {
-				v.Set(configBaseURL, cfg.BaseURL)
+				v.Set(optBaseURL, cfg.BaseURL)
 			}
 
 			if cfg.Sandbox {
@@ -105,16 +105,20 @@ func CmdConfig(opts *Options) *cobra.Command {
 
 			return nil
 		},
-	}, opts)
+	}
 
-	cmd.AddCommand(CmdConfigGet(opts))
-	cmd.AddCommand(CmdConfigSet(opts))
-
-	return cmd
+	return createCommand(
+		cmd,
+		withOptions(opts),
+		withSubcommand(
+			cmdConfigGet(opts),
+			cmdConfigSet(opts),
+		),
+	)
 }
 
-func CmdConfigGet(opts *Options) *cobra.Command {
-	cmd := createCmd(&cobra.Command{
+func cmdConfigGet(opts *Options) *Command {
+	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Manage configurations",
 		Args:  cobra.ExactArgs(1),
@@ -127,13 +131,13 @@ func CmdConfigGet(opts *Options) *cobra.Command {
 
 			return nil
 		},
-	}, opts)
+	}
 
-	return cmd
+	return createCommand(cmd, withOptions(opts))
 }
 
-func CmdConfigSet(opts *Options) *cobra.Command {
-	cmd := createCmd(&cobra.Command{
+func cmdConfigSet(opts *Options) *Command {
+	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Manage configurations",
 		Args:  cobra.ExactArgs(2),
@@ -160,7 +164,7 @@ func CmdConfigSet(opts *Options) *cobra.Command {
 
 			return nil
 		},
-	}, opts)
+	}
 
-	return cmd
+	return createCommand(cmd, withOptions(opts))
 }

@@ -5,26 +5,55 @@ import (
 	"github.com/spf13/viper"
 )
 
-func addGlobalFlags(cmd *cobra.Command) {
-	cmd.PersistentFlags().Bool(optSandbox, false, "Sandbox environment")
-	cmd.PersistentFlags().String(configAccessToken, "", "Access token")
-	cmd.PersistentFlags().String(configAccount, "", "Account")
-	cmd.PersistentFlags().String(configBaseURL, "", "Base URL")
-	cmd.PersistentFlags().StringVar(&profile, optProfile, defaultProfile, "Profile")
-	cmd.PersistentFlags().StringVarP(&configFile, configConfigFile, "c", "", "Configuration file")
+func withGlobalFlags() commandOption {
+	return func(cmd *cobra.Command) {
+		cmd.PersistentFlags().Bool(optSandbox, false, "Sandbox environment")
+		cmd.PersistentFlags().String(optAccessToken, "", "Access token")
+		cmd.PersistentFlags().String(optAccount, "", "Account")
+		cmd.PersistentFlags().String(optBaseURL, "", "Base URL")
+		cmd.PersistentFlags().StringVar(&profile, optProfile, defaultProfile, "Profile")
+		cmd.PersistentFlags().StringVarP(&configFile, optConfigFile, "c", "", "Configuration file")
 
-	cmd.MarkFlagsMutuallyExclusive(configBaseURL, optSandbox)
+		cmd.MarkFlagsMutuallyExclusive(optBaseURL, optSandbox)
 
-	viper.SetEnvPrefix(envPrefix)
-	if err := viper.BindPFlags(cmd.PersistentFlags()); err != nil {
-		panic(err)
+		viper.SetEnvPrefix(envPrefix)
+		if err := viper.BindPFlags(cmd.PersistentFlags()); err != nil {
+			panic(err)
+		}
 	}
 }
 
-func applyOutputFlag(cmd *cobra.Command, f string) {
-	cmd.Flags().StringP(optOutput, "o", f, "Output format")
+func withOutputFlag(value string) commandOption {
+	return func(cmd *cobra.Command) {
+		cmd.Flags().StringP(optOutput, "o", value, "Output format")
+	}
 }
 
-func applyQueryFlag(cmd *cobra.Command) {
-	cmd.Flags().StringP(optQuery, "q", "", "Query")
+func withQueryFlag() commandOption {
+	return func(cmd *cobra.Command) {
+		cmd.Flags().StringP(optQuery, "q", "", "Query")
+	}
+}
+
+func withOptions(opts *Options) commandOption {
+	return func(cmd *cobra.Command) {
+		cmd.SetOutput(opts.Stdout)
+		cmd.SetIn(opts.Stdin)
+		cmd.SetErr(opts.Stderr)
+	}
+}
+
+func withSubcommand(children ...*Command) commandOption {
+	return func(cmd *cobra.Command) {
+		for _, c := range children {
+			cmd.AddCommand(c.Command)
+		}
+	}
+}
+
+func withDomainFlag(value string) commandOption {
+	return func(cmd *cobra.Command) {
+		cmd.Flags().StringP(optDomain, "d", value, "Domain")
+
+	}
 }
