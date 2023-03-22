@@ -23,15 +23,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-func cmdFoo(opts *Options) *Cmd {
+func cmdBar(opts *Options) *Cmd {
 	cmd := &cobra.Command{
-		Use:   "foo",
+		Use:   "bar",
 		Short: "List accounts",
 		Example: heredoc.Doc(`
-			template foo
-			template foo --output=json
-			template foo --output=yaml
-			template foo --output=json --query="[].id"
+			template bar
+			template bar --output=json
+			template bar --output=yaml
+			template bar --output=json --query="[].id"
 		`),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return viper.BindPFlags(cmd.Flags())

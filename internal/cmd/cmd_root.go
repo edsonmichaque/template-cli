@@ -88,6 +88,7 @@ func cmdRoot(opts *Options) *Cmd {
 	return newCmd(
 		cmd,
 		withSubcommand(cmdFoo(opts)),
+		withSubcommand(cmdBar(opts)),
 		withSubcommand(cmdConfig(opts)),
 		withSubcommand(cmdVersion(opts)),
 		withGlobalFlags(),
@@ -145,13 +146,4 @@ func newCmd(c *cobra.Command, opts ...cmdOption) *Cmd {
 	return &Cmd{
 		Command: c,
 	}
-}
-
-type Error struct {
-	Code int
-	Err  error
-}
-
-func (e Error) Error() string {
-	return e.Err.Error()
 }
