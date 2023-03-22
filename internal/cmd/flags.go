@@ -23,12 +23,14 @@ func withGlobalFlags() commandOption {
 	}
 }
 
+// withOutputFlag adds output flag to command
 func withOutputFlag(value string) commandOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optOutput, "o", value, "Output format")
 	}
 }
 
+// withQueryFlag adds query flag to command
 func withQueryFlag() commandOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optQuery, "q", "", "Query")
@@ -43,6 +45,7 @@ func withOptions(opts *Options) commandOption {
 	}
 }
 
+// withSubcommand adds subcommand to command
 func withSubcommand(children ...*Command) commandOption {
 	return func(cmd *cobra.Command) {
 		for _, c := range children {
@@ -51,9 +54,9 @@ func withSubcommand(children ...*Command) commandOption {
 	}
 }
 
+// withDomainFlag adds domain flag to command
 func withDomainFlag(value string) commandOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optDomain, "d", value, "Domain")
-
 	}
 }
