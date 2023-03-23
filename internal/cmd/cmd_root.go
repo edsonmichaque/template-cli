@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,41 +33,41 @@ var (
 )
 
 const (
-	binaryName              = "template"
-	defaultConfigFileFormat = "yaml"
-	defaultProfile          = "default"
-	envDev                  = "DEV"
-	envPrefix               = "TEMPLATE"
-	envProd                 = "PROD"
-	envSandbox              = "SANDBOX"
-	envTemplateConfigFile   = "TEMPLATE_CONFIG_FILE"
-	envTemplateProfile      = "TEMPLATE_PROFILE"
-	envXDGConfigHome        = "XDG_CONFIG_HOME"
-	formatJSON              = "json"
-	formatTable             = "table"
-	formatText              = "text"
-	formatYAML              = "yaml"
-	optAccessToken          = "access-token"
-	optAccount              = "account"
-	optBaseURL              = "base-url"
-	optCollaboratorID       = "collaborator-id"
-	optConfigFile           = "config-file"
-	optConfirm              = "confirm"
-	optDomain               = "domain"
-	optOutput               = "output"
-	optPage                 = "page"
-	optPerPage              = "per-page"
-	optProfile              = "profile"
-	optQuery                = "query"
-	optRecordID             = "record-id"
-	optSandbox              = "sandbox"
-	optionFromFile          = "from-file"
-	pathConfigFile          = "/etc/template"
-	pathTemplate            = "template"
+	binaryName            = "template"
+	defaultProfile        = "default"
+	envDev                = "DEV"
+	envPrefix             = "TEMPLATE"
+	envProd               = "PROD"
+	envSandbox            = "SANDBOX"
+	envTemplateConfigFile = "TEMPLATE_CONFIG_FILE"
+	envTemplateProfile    = "TEMPLATE_PROFILE"
+	envXDGConfigHome      = "XDG_CONFIG_HOME"
+	formatJSON            = "json"
+	formatTable           = "table"
+	formatText            = "text"
+	formatYAML            = "yaml"
+	optAccessToken        = "access-token"
+	optAccount            = "account"
+	optBaseURL            = "base-url"
+	optCollaboratorID     = "collaborator-id"
+	optConfigFile         = "config-file"
+	optConfirm            = "confirm"
+	optDomain             = "domain"
+	optOutput             = "output"
+	optPage               = "page"
+	optPerPage            = "per-page"
+	optProfile            = "profile"
+	optQuery              = "query"
+	optRecordID           = "record-id"
+	optSandbox            = "sandbox"
+	optionFromFile        = "from-file"
+	pathConfigFile        = "/etc/template"
+	pathTemplate          = "template"
 )
 
-func RunWithOptions(opts *Options) error {
-	return cmdRoot(opts).Execute()
+func init() {
+	cobra.OnInitialize(initConfig)
+	viperBindEnv()
 }
 
 func Run() error {
@@ -75,10 +76,15 @@ func Run() error {
 		return err
 	}
 
-	return RunWithOptions(opts)
+	return runWithOptions(opts)
+}
+
+func runWithOptions(opts *Options) error {
+	return cmdRoot(opts).Execute()
 }
 
 func cmdRoot(opts *Options) *Cmd {
+
 	cmd := &cobra.Command{
 		Use: binaryName,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -86,8 +92,6 @@ func cmdRoot(opts *Options) *Cmd {
 		},
 		SilenceUsage: true,
 	}
-
-	cobra.OnInitialize(initConfig)
 
 	return newCmd(
 		cmd,
@@ -114,7 +118,7 @@ func initConfig() {
 
 		viper.AddConfigPath(filepath.Join(configHome, pathTemplate))
 		viper.AddConfigPath(pathConfigFile)
-		viper.SetConfigType(defaultConfigFileFormat)
+		viper.SetConfigType(configFormatYAML)
 
 		viper.SetConfigName(defaultProfile)
 
@@ -126,8 +130,6 @@ func initConfig() {
 			viper.SetConfigName(profile)
 		}
 	}
-
-	bindEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
@@ -152,10 +154,10 @@ func newCmd(c *cobra.Command, opts ...cmdOption) *Cmd {
 	}
 }
 
-func bindEnv() {
+func viperBindEnv() {
 	for _, v := range os.Environ() {
 		parts := strings.Split(v, "=")
-		if len(parts) == 0 {
+		if len(parts) != 2 {
 			continue
 		}
 
@@ -163,7 +165,12 @@ func bindEnv() {
 			continue
 		}
 
-		viper.BindEnv(envToFlag(v), parts[0])
+		env, err := envToFlag(v)
+		if err != nil {
+			continue
+		}
+
+		viper.BindEnv(env, parts[0])
 	}
 }
 
@@ -174,11 +181,16 @@ func flagToEnv(env string) string {
 	return fmt.Sprintf("%s_%s", envPrefix, env)
 }
 
-func envToFlag(env string) string {
+func envToFlag(env string) (string, error) {
 	env = strings.TrimPrefix(env, envPrefix+"_")
 	parts := strings.Split(env, "=")
+
+	if len(parts) != 2 {
+		return "", errors.New("Invalid env var")
+	}
+
 	env = strings.ToLower(parts[0])
 	env = strings.ReplaceAll(env, "_", "-")
 
-	return env
+	return env, nil
 }
