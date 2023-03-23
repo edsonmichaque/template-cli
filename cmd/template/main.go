@@ -22,12 +22,23 @@ import (
 	"github.com/edsonmichaque/template-cli/internal/cmd"
 )
 
+const (
+	exitSuccess = 0
+	exitFailure = 1
+)
+
 func main() {
+	os.Exit(run())
+}
+
+func run() int {
 	if err := cmd.Run(); err != nil {
 		if cmdErr, ok := err.(cmd.Error); ok {
-			os.Exit(cmdErr.Code)
+			return cmdErr.Code
 		}
 
-		os.Exit(1)
+		return exitFailure
 	}
+
+	return exitSuccess
 }
