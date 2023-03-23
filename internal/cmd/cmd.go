@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"errors"
 	"io"
 	"os"
-
-	"github.com/dnsimple/dnsimple-go/dnsimple"
 )
 
 type Error struct {
@@ -39,17 +36,12 @@ func NewOptions() (*Options, error) {
 }
 
 type Options struct {
-	Stdout        io.Writer
-	Stdin         io.Reader
-	Stderr        io.Writer
-	WorkDir       string
-	ClientBuilder func(string, string) *dnsimple.Client
+	Stdout  io.Writer
+	Stdin   io.Reader
+	Stderr  io.Writer
+	WorkDir string
 }
 
 func (c Options) Validate() error {
-	if c.ClientBuilder == nil {
-		return errors.New("invalid client builder")
-	}
-
 	return nil
 }

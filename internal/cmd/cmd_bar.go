@@ -42,7 +42,7 @@ func cmdBar(opts *Options) *Cmd {
 				return newError(exitFailure, err)
 			}
 
-			cmd.Printf("%#+q", cfg)
+			cmd.Printf("%#v", cfg)
 
 			return nil
 		},
