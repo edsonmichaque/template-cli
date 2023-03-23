@@ -37,12 +37,12 @@ func cmdBar(opts *Options) *Cmd {
 			return viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.New()
+			cfg, err := config.Load()
 			if err != nil {
-				return newError(1, err)
+				return newError(exitFailure, err)
 			}
 
-			cmd.Println(cfg)
+			cmd.Printf("%#+q", cfg)
 
 			return nil
 		},
@@ -55,3 +55,7 @@ func cmdBar(opts *Options) *Cmd {
 		withOptions(opts),
 	)
 }
+
+const (
+	exitFailure = 1
+)

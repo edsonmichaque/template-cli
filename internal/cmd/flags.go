@@ -13,13 +13,9 @@ func withGlobalFlags() cmdOption {
 		cmd.PersistentFlags().String(optBaseURL, "", "Base URL")
 		cmd.PersistentFlags().StringVar(&profile, optProfile, defaultProfile, "Profile")
 		cmd.PersistentFlags().StringVarP(&configFile, optConfigFile, "c", "", "Configuration file")
-
 		cmd.MarkFlagsMutuallyExclusive(optBaseURL, optSandbox)
 
 		viper.SetEnvPrefix(envPrefix)
-		if err := viper.BindPFlags(cmd.PersistentFlags()); err != nil {
-			panic(err)
-		}
 	}
 }
 
@@ -55,8 +51,26 @@ func withSubcommand(children ...*Cmd) cmdOption {
 }
 
 // withDomainFlag adds domain flag to command
-func withDomainFlag(value string) cmdOption {
+func withDomainFlag(value string, required bool) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optDomain, "d", value, "Domain")
+
+		if required {
+			cmd.MarkFlagRequired(optDomain)
+		}
 	}
+}
+
+func withStringFlag(value string, required bool) cmdOption {
+	return func(cmd *cobra.Command) {
+		cmd.Flags().StringP(optDomain, "d", value, "Domain")
+
+		if required {
+			cmd.MarkFlagRequired(optDomain)
+		}
+	}
+}
+
+func withRequiredStringFlag(value string) cmdOption {
+	return withStringFlag(value, true)
 }

@@ -22,12 +22,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-const (
-	BaseURLProduction = "https://api.dnsimple.com"
-	BaseURLSandbox    = "https://api.sandbox.dnsimple.com"
-)
-
-func New() (*Config, error) {
+func Load() (*Config, error) {
 	return NewWithValidation(true)
 }
 
@@ -41,10 +36,6 @@ func NewWithValidation(validate bool) (*Config, error) {
 		if err := cfg.Validate(); err != nil {
 			return nil, err
 		}
-	}
-
-	if cfg.Sandbox {
-		cfg.BaseURL = BaseURLSandbox
 	}
 
 	return &cfg, nil

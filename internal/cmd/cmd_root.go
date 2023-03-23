@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -78,12 +79,15 @@ func Run() error {
 }
 
 func cmdRoot(opts *Options) *Cmd {
-	cobra.OnInitialize(initConfig)
-
 	cmd := &cobra.Command{
-		Use:          binaryName,
+		Use: binaryName,
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return viper.BindPFlags(cmd.PersistentFlags())
+		},
 		SilenceUsage: true,
 	}
+
+	cobra.OnInitialize(initConfig)
 
 	return newCmd(
 		cmd,
@@ -123,7 +127,7 @@ func initConfig() {
 		}
 	}
 
-	viper.AutomaticEnv()
+	bindEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
@@ -146,4 +150,35 @@ func newCmd(c *cobra.Command, opts ...cmdOption) *Cmd {
 	return &Cmd{
 		Command: c,
 	}
+}
+
+func bindEnv() {
+	for _, v := range os.Environ() {
+		parts := strings.Split(v, "=")
+		if len(parts) == 0 {
+			continue
+		}
+
+		if !strings.HasPrefix(parts[0], envPrefix+"_") {
+			continue
+		}
+
+		viper.BindEnv(envToFlag(v), parts[0])
+	}
+}
+
+func flagToEnv(env string) string {
+	env = strings.ReplaceAll(env, "-", "_")
+	env = strings.ToUpper(env)
+
+	return fmt.Sprintf("%s_%s", envPrefix, env)
+}
+
+func envToFlag(env string) string {
+	env = strings.TrimPrefix(env, envPrefix+"_")
+	parts := strings.Split(env, "=")
+	env = strings.ToLower(parts[0])
+	env = strings.ReplaceAll(env, "_", "-")
+
+	return env
 }
