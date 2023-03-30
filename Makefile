@@ -3,7 +3,7 @@ COPYRIGHT_YEARS := "2023"
 
 .PHONY: build
 build:
-	go build -o ./bin/tsonga cmd/tsonga/main.go
+	go build -o ./bin/template cmd/template/main.go
 
 .PHONY: test
 test:
@@ -32,3 +32,7 @@ copyright: addlicense
 .PHONY: check-license
 check-license: addlicense
 	addlicense -check .
+
+.PHONY: integration
+integration: build
+	./test/bats/bin/bats test
