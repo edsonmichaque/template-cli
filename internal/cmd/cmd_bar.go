@@ -39,7 +39,7 @@ func cmdBar(opts *Options) *Cmd {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
 			if err != nil {
-				return newError(exitFailure, err)
+				return wrapError(exitFailure, err)
 			}
 
 			cmd.Printf("%#v", cfg)

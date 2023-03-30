@@ -17,7 +17,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -88,12 +87,12 @@ func cmdConfigInit(opts *Options) *Cmd {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.LoadWithValidation(false)
 			if err != nil {
-				return newError(exitFailure, err)
+				return wrapError(exitFailure, err)
 			}
 
 			home, err := os.UserConfigDir()
 			if err != nil {
-				return newError(exitFailure, err)
+				return wrapError(exitFailure, err)
 			}
 
 			profile := viper.GetString(optProfile)
@@ -101,7 +100,7 @@ func cmdConfigInit(opts *Options) *Cmd {
 			cmd.Println(fmt.Sprintf("Configuring profile '%s'", profile))
 			cfg, ext, err := promptConfig(cfg)
 			if err != nil {
-				return newError(exitFailure, err)
+				return wrapError(exitFailure, err)
 			}
 
 			v := viper.New()
@@ -117,7 +116,7 @@ func cmdConfigInit(opts *Options) *Cmd {
 
 			cfgPath := filepath.Join(home, pathTemplate, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
 			if err := v.WriteConfigAs(cfgPath); err != nil {
-				return newError(exitFailure, err)
+				return wrapError(exitFailure, err)
 			}
 
 			return nil
@@ -138,7 +137,7 @@ func cmdConfigGet(opts *Options) *Cmd {
 			}
 
 			if _, ok := configProps[args[0]]; !ok {
-				return newError(exitFailure, errors.New("not found"))
+				return newError(exitFailure, "not found")
 			}
 
 			return nil
@@ -164,7 +163,7 @@ func cmdConfigSet(opts *Options) *Cmd {
 			}
 
 			if _, ok := configProps[args[0]]; !ok {
-				return newError(exitFailure, errors.New("not found"))
+				return newError(exitFailure, "not found")
 			}
 
 			return nil
@@ -172,18 +171,18 @@ func cmdConfigSet(opts *Options) *Cmd {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			validate := cfgValidate[args[0]]
 			if validate == nil {
-				return newError(exitFailure, errors.New("no validator found"))
+				return newError(exitFailure, "no validator found")
 			}
 
 			value, err := validate(args[1])
 			if err != nil {
-				return newError(exitFailure, err)
+				return wrapError(exitFailure, err)
 			}
 
 			viper.Set(args[0], value)
 
 			if err := viper.WriteConfig(); err != nil {
-				return newError(exitFailure, err)
+				return wrapError(exitFailure, err)
 			}
 
 			return nil

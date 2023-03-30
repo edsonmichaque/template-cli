@@ -15,11 +15,11 @@ func (e Error) Error() string {
 	return e.Err.Error()
 }
 
-func newErrorFromString(code int, err string) Error {
-	return newError(code, errors.New(err))
+func newError(code int, err string) Error {
+	return wrapError(code, errors.New(err))
 }
 
-func newError(code int, err error) Error {
+func wrapError(code int, err error) Error {
 	return Error{
 		Code: code,
 		Err:  err,

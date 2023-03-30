@@ -39,7 +39,7 @@ func cmdFoo(opts *Options) *Cmd {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.Load()
 			if err != nil {
-				return newError(1, err)
+				return wrapError(1, err)
 			}
 
 			cmd.Println(cfg)
