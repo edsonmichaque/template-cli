@@ -33,8 +33,8 @@ copyright: addlicense
 check-license: addlicense
 	addlicense -check .
 
-.PHONY: integration
-integration: build bats
+.PHONY: e2e
+e2e: build bats
 	./test/bats/bin/bats test
 
 .PHONY: bats
