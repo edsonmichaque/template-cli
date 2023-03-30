@@ -34,5 +34,9 @@ check-license: addlicense
 	addlicense -check .
 
 .PHONY: integration
-integration: build
+integration: build bats
 	./test/bats/bin/bats test
+
+.PHONY: bats
+bats:
+	bash hack/bats.sh
