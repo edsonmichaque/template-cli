@@ -54,5 +54,5 @@ func cmdVersion(opts *Options) *Cmd {
 		},
 	}
 
-	return newCmd(cmd, withOptions(opts))
+	return initCmd(cmd, withOptions(opts))
 }

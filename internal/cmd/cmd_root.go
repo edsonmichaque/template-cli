@@ -93,7 +93,7 @@ func cmdRoot(opts *Options) *Cmd {
 		SilenceUsage: true,
 	}
 
-	return newCmd(
+	return initCmd(
 		cmd,
 		withSubcommand(cmdFoo(opts)),
 		withSubcommand(cmdBar(opts)),
@@ -144,13 +144,13 @@ type Cmd struct {
 
 type cmdOption func(*cobra.Command)
 
-func newCmd(c *cobra.Command, opts ...cmdOption) *Cmd {
-	for _, opt := range opts {
-		opt(c)
+func initCmd(cmd *cobra.Command, applyFn ...cmdOption) *Cmd {
+	for _, apply := range applyFn {
+		apply(cmd)
 	}
 
 	return &Cmd{
-		Command: c,
+		Command: cmd,
 	}
 }
 

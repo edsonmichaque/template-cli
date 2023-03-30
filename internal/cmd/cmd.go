@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"io"
 	"os"
 )
@@ -12,6 +13,10 @@ type Error struct {
 
 func (e Error) Error() string {
 	return e.Err.Error()
+}
+
+func newErrorFromString(code int, err string) Error {
+	return newError(code, errors.New(err))
 }
 
 func newError(code int, err error) Error {

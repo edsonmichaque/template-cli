@@ -47,7 +47,7 @@ var (
 		optSandbox:     {},
 	}
 
-	validateConfig = map[string]func(string) (interface{}, error){
+	cfgValidate = map[string]func(string) (interface{}, error){
 		optSandbox: func(value string) (interface{}, error) {
 			return strconv.ParseBool(value)
 		},
@@ -67,16 +67,33 @@ func cmdConfig(opts *Options) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage configurations",
-		Args:  cobra.NoArgs,
+	}
+
+	return initCmd(
+		cmd,
+		withOptions(opts),
+		withSubcommand(
+			cmdConfigInit(opts),
+			cmdConfigGet(opts),
+			cmdConfigSet(opts),
+		),
+	)
+}
+
+func cmdConfigInit(opts *Options) *Cmd {
+	cmd := &cobra.Command{
+		Use:   "init",
+		Short: "Manage configurations",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.NewWithValidation(false)
+			cfg, err := config.LoadWithValidation(false)
 			if err != nil {
-				return newError(1, err)
+				return newError(exitFailure, err)
 			}
 
 			home, err := os.UserConfigDir()
 			if err != nil {
-				return newError(1, err)
+				return newError(exitFailure, err)
 			}
 
 			profile := viper.GetString(optProfile)
@@ -84,7 +101,7 @@ func cmdConfig(opts *Options) *Cmd {
 			cmd.Println(fmt.Sprintf("Configuring profile '%s'", profile))
 			cfg, ext, err := promptConfig(cfg)
 			if err != nil {
-				return newError(1, err)
+				return newError(exitFailure, err)
 			}
 
 			v := viper.New()
@@ -100,71 +117,78 @@ func cmdConfig(opts *Options) *Cmd {
 
 			cfgPath := filepath.Join(home, pathTemplate, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
 			if err := v.WriteConfigAs(cfgPath); err != nil {
-				return newError(1, err)
+				return newError(exitFailure, err)
 			}
 
 			return nil
 		},
 	}
 
-	return newCmd(
-		cmd,
-		withOptions(opts),
-		withSubcommand(
-			cmdConfigGet(opts),
-			cmdConfigSet(opts),
-		),
-	)
+	return initCmd(cmd, withOptions(opts))
 }
 
 func cmdConfigGet(opts *Options) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Manage configurations",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if _, ok := configProps[args[0]]; !ok {
-				return newError(1, errors.New("not found"))
+		Args: func(cmd *cobra.Command, args []string) error {
+			validate := cobra.ExactArgs(1)
+			if err := validate(cmd, args); err != nil {
+				return err
 			}
 
+			if _, ok := configProps[args[0]]; !ok {
+				return newError(exitFailure, errors.New("not found"))
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.Println(viper.GetString(args[0]))
 
 			return nil
 		},
 	}
 
-	return newCmd(cmd, withOptions(opts))
+	return initCmd(cmd, withOptions(opts))
 }
 
 func cmdConfigSet(opts *Options) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Manage configurations",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if _, ok := configProps[args[0]]; !ok {
-				return newError(1, errors.New("not found"))
+		Args: func(cmd *cobra.Command, args []string) error {
+			validate := cobra.ExactArgs(2)
+			if err := validate(cmd, args); err != nil {
+				return err
 			}
 
-			validate := validateConfig[args[0]]
+			if _, ok := configProps[args[0]]; !ok {
+				return newError(exitFailure, errors.New("not found"))
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			validate := cfgValidate[args[0]]
 			if validate == nil {
-				return newError(1, errors.New("no validator found"))
+				return newError(exitFailure, errors.New("no validator found"))
 			}
 
 			value, err := validate(args[1])
 			if err != nil {
-				return newError(1, err)
+				return newError(exitFailure, err)
 			}
 
 			viper.Set(args[0], value)
 
 			if err := viper.WriteConfig(); err != nil {
-				return newError(1, err)
+				return newError(exitFailure, err)
 			}
 
 			return nil
 		},
 	}
 
-	return newCmd(cmd, withOptions(opts))
+	return initCmd(cmd, withOptions(opts))
 }

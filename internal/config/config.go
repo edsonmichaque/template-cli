@@ -23,10 +23,10 @@ import (
 )
 
 func Load() (*Config, error) {
-	return NewWithValidation(true)
+	return LoadWithValidation(true)
 }
 
-func NewWithValidation(validate bool) (*Config, error) {
+func LoadWithValidation(validate bool) (*Config, error) {
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, err
