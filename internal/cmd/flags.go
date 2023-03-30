@@ -50,8 +50,8 @@ func withSubcommand(children ...*Cmd) cmdOption {
 	}
 }
 
-// withDomainFlag adds domain flag to command
-func withDomainFlag(value string, required bool) cmdOption {
+// withFlagDomain adds domain flag to command
+func withFlagDomain(value string, required bool) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optDomain, "d", value, "Domain")
 
@@ -61,9 +61,9 @@ func withDomainFlag(value string, required bool) cmdOption {
 	}
 }
 
-func withStringFlag(value string, required bool) cmdOption {
+func withFlagString(name string, required bool, desc string) cmdOption {
 	return func(cmd *cobra.Command) {
-		cmd.Flags().StringP(optDomain, "d", value, "Domain")
+		cmd.Flags().String(name, "", desc)
 
 		if required {
 			cmd.MarkFlagRequired(optDomain)
@@ -71,6 +71,12 @@ func withStringFlag(value string, required bool) cmdOption {
 	}
 }
 
-func withRequiredStringFlag(value string) cmdOption {
-	return withStringFlag(value, true)
+func withFlagStringP(name string, short string, required bool, desc string) cmdOption {
+	return func(cmd *cobra.Command) {
+		cmd.Flags().StringP(name, short, "", desc)
+
+		if required {
+			cmd.MarkFlagRequired(optDomain)
+		}
+	}
 }
