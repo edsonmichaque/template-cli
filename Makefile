@@ -35,7 +35,7 @@ check-license: addlicense
 
 .PHONY: e2e
 e2e: build bats
-	./test/bats/bin/bats test
+	./e2e/bats/bin/bats test
 
 .PHONY: bats
 bats:
