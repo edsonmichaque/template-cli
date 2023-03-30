@@ -1,6 +1,10 @@
 COPYRIGHT_HOLDER := "Edson Michaque"
 COPYRIGHT_YEARS := "2023"
 
+.PHONY: update-deps
+update-deps:
+	go get -u ./...
+
 .PHONY: build
 build:
 	go build -o ./bin/template cmd/template/main.go
@@ -35,7 +39,9 @@ check-license: addlicense
 
 .PHONY: e2e
 e2e: build bats
-	./e2e/bats/bin/bats test
+	./e2e/bats/bin/bats e2e
+	go test -race -tags=e2e -v ./...
+
 
 .PHONY: bats
 bats:
