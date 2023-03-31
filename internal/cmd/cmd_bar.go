@@ -46,7 +46,7 @@ func cmdBar(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			promptResults, err := runPrompt(
+			promptResults, err := execPrompt(
 				promptConfirm("Do you want to do it?", false),
 				promptConfirm("Do you want to do it again?", false),
 				promptConfirm("Do you want to do it again again?", false),
