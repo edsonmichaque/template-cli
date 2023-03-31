@@ -45,7 +45,7 @@ var (
 		optSandbox:     {},
 	}
 
-	cfgValidate = map[string]func(string) (interface{}, error){
+	cfgValidateFuncs = map[string]func(string) (interface{}, error){
 		optSandbox: func(value string) (interface{}, error) {
 			return strconv.ParseBool(value)
 		},
@@ -148,12 +148,14 @@ func cmdConfigGet(opts *Opts) *Cmd {
 		Use:   "get",
 		Short: "Manage configurations",
 		Args: func(cmd *cobra.Command, args []string) error {
+			prop := args[0]
+
 			return preRunE(
 				func() error {
 					return cobra.ExactArgs(1)(cmd, args)
 				},
 				func() error {
-					if _, ok := configProps[args[0]]; !ok {
+					if _, ok := configProps[prop]; !ok {
 						return errors.New("not found")
 					}
 
@@ -166,13 +168,15 @@ func cmdConfigGet(opts *Opts) *Cmd {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg := &config.Config{
-				Account:     "123456",
-				AccessToken: "456789",
+				Account:     "abc123456",
+				AccessToken: "def456789",
 				BaseURL:     "https://example.com",
 			}
 
 			resp, err := formatter.Format(formatter.ToConfigList(cfg), &formatter.Opts{
-				Output: formatter.Output(viper.GetString(optOutput)),
+				Output: formatter.Output(
+					viper.GetString(optOutput),
+				),
 			})
 			if err != nil {
 				return wrapError(1, err)
@@ -212,12 +216,12 @@ func cmdConfigSet(opts *Opts) *Cmd {
 			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			validate := cfgValidate[args[0]]
-			if validate == nil {
+			validateCfg := cfgValidateFuncs[args[0]]
+			if validateCfg == nil {
 				return newError(exitFailure, "no validator found")
 			}
 
-			value, err := validate(args[1])
+			value, err := validateCfg(args[1])
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}

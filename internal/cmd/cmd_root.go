@@ -213,8 +213,7 @@ func envToFlag(env string) (string, error) {
 		return "", errors.New("Invalid env var")
 	}
 
-	env = strings.ToLower(envParts[0])
-	env = strings.ReplaceAll(env, "_", "-")
+	env = strings.ReplaceAll(strings.ToLower(envParts[0]), "_", "-")
 
 	return env, nil
 }
