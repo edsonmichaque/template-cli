@@ -42,7 +42,19 @@ func cmdBar(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			cmd.Printf("%#v", cfg)
+			promptResults, err := runPrompt(
+				promptConfirm("Do you want to do it?", false),
+				promptConfirm("Do you want to do it again?", false),
+				promptConfirm("Do you want to do it again again?", false),
+				promptFileFormat(cfgFormatYAML),
+				promptBaseURL("https://example.com"),
+			)
+			if err != nil {
+				return err
+			}
+
+			cmd.Printf("%#v\n", cfg)
+			cmd.Printf("%#v\n", promptResults)
 
 			return nil
 		},

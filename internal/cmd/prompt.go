@@ -38,7 +38,7 @@ func runConfirm(domain string) bool {
 }
 
 func promptConfig(c *config.Config) (*config.Config, string, error) {
-	baseURL := prodBaseURL
+	/*baseURL := prodBaseURL
 
 	accountID, err := promptAccountID(c.Account)
 	if err != nil {
@@ -93,7 +93,8 @@ func promptConfig(c *config.Config) (*config.Config, string, error) {
 		cfg.Sandbox = true
 	}
 
-	return &cfg, fileFormat, nil
+	return &cfg, fileFormat, nil*/
+	return nil, "", errors.New("")
 }
 
 func promptAccessToken(value string) (string, error) {
@@ -139,33 +140,43 @@ func promptEnvironment(value string) (string, error) {
 	return env, nil
 }
 
-func promptBaseURL(value string) (string, error) {
-	prompt := &survey.Input{
-		Message: "Base URL",
-		Default: value,
-	}
+func promptBaseURL(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptResult, error) {
+		prompt := &survey.Input{
+			Message: "Base URL",
+			Default: value,
+		}
 
-	var baseURL string
-	if err := survey.AskOne(prompt, &baseURL); err != nil {
-		return "", err
-	}
+		var baseURL string
+		if err := survey.AskOne(prompt, &baseURL); err != nil {
+			return nil, err
+		}
 
-	return baseURL, nil
+		return &promptResult{
+			Name:  "format",
+			Value: baseURL,
+		}, nil
+	})
 }
 
-func promptFileFormat(value string) (string, error) {
-	prompt := &survey.Select{
-		Message: "File format",
-		Options: []string{configFormatJSON, cfgFormatYAML, configFormatTOML},
-		Default: value,
-	}
+func promptFileFormat(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptResult, error) {
+		prompt := &survey.Select{
+			Message: "File format",
+			Options: []string{cfgFormatJSON, cfgFormatYAML, cfgFormatTOML},
+			Default: value,
+		}
 
-	var fileFormat string
-	if err := survey.AskOne(prompt, &fileFormat); err != nil {
-		return "", err
-	}
+		var fileFormat string
+		if err := survey.AskOne(prompt, &fileFormat); err != nil {
+			return nil, err
+		}
 
-	return fileFormat, nil
+		return &promptResult{
+			Name:  "format",
+			Value: fileFormat,
+		}, nil
+	})
 }
 
 func promptConfirmation(msg string, value bool) (bool, error) {
@@ -181,4 +192,73 @@ func promptConfirmation(msg string, value bool) (bool, error) {
 	}
 
 	return confirmation, nil
+}
+
+type runPromptResult map[string]interface{}
+
+func (r runPromptResult) Get(key string) interface{} {
+	if s, ok := r[key]; ok {
+		return s
+	}
+
+	return nil
+}
+
+func (r runPromptResult) GetSting(key string) string {
+	value := r.Get(key)
+	if value == nil {
+		return ""
+	}
+
+	return value.(string)
+}
+
+func runPrompt(items ...promptRunner) (runPromptResult, error) {
+	output := make(map[string]interface{})
+
+	for _, item := range items {
+		kv, err := item.RunPrompt()
+		if err != nil {
+			return nil, err
+		}
+
+		output[kv.Name] = kv.Value
+	}
+
+	return output, nil
+}
+
+type promptRunner interface {
+	RunPrompt() (*promptResult, error)
+}
+
+type runPromptFunc func() (*promptResult, error)
+
+func (p runPromptFunc) RunPrompt() (*promptResult, error) {
+	return p()
+}
+
+func promptConfirm(msg string, value bool) runPromptFunc {
+	return runPromptFunc(func() (*promptResult, error) {
+		prompt := &survey.Confirm{
+			Message: msg,
+			Default: false,
+		}
+
+		var confirmation bool
+
+		if err := survey.AskOne(prompt, &confirmation); err != nil {
+			return nil, err
+		}
+
+		return &promptResult{
+			Name:  "confirmation",
+			Value: confirmation,
+		}, nil
+	})
+}
+
+type promptResult struct {
+	Name  string
+	Value interface{}
 }

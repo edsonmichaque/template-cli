@@ -30,10 +30,10 @@ import (
 )
 
 const (
-	configFormatJSON = "json"
-	cfgFormatYAML    = "yaml"
-	configFormatTOML = "toml"
-	configFormatYML  = "yml"
+	cfgFormatJSON = "json"
+	cfgFormatYAML = "yaml"
+	cfgFormatTOML = "toml"
+	cfgFormatYML  = "yml"
 )
 
 var (
@@ -99,6 +99,7 @@ func cmdConfigInit(opts *Opts) *Cmd {
 			profile := viper.GetString(optProfile)
 
 			cmd.Println(fmt.Sprintf("Configuring profile '%s'", profile))
+
 			cfg, ext, err := promptConfig(cfg)
 			if err != nil {
 				return wrapError(exitFailure, err)
@@ -117,7 +118,11 @@ func cmdConfigInit(opts *Opts) *Cmd {
 				cfgViper.Set(optSandbox, cfg.Sandbox)
 			}
 
-			cfgPath := filepath.Join(home, bin, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
+			cfgPath := filepath.Join(
+				home,
+				bin,
+				fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)),
+			)
 			if err := cfgViper.WriteConfigAs(cfgPath); err != nil {
 				return wrapError(exitFailure, err)
 			}
