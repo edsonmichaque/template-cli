@@ -17,46 +17,12 @@
 package cmd
 
 import (
-	"fmt"
-	"io"
-
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/edsonmichaque/template-cli/internal/cmd/formatter"
 	"github.com/edsonmichaque/template-cli/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-func cmdWrite(cmd *cobra.Command, r io.Reader) error {
-	if _, err := io.Copy(cmd.OutOrStdout(), r); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func flagContainsValue(flag string, values []string) error {
-	flagValue := viper.GetString(flag)
-
-	for _, value := range values {
-		if flagValue == value {
-			return nil
-		}
-	}
-
-	return fmt.Errorf(`flag "%s" has invalid value "%s"`, flag, flagValue)
-
-}
-
-func chainPreRunFunctions(fn ...func() error) error {
-	for _, preRun := range fn {
-		if err := preRun(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func cmdFoo(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
@@ -70,12 +36,12 @@ func cmdFoo(opts *Opts) *Cmd {
 		`),
 		Args: cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return chainPreRunFunctions(
+			return preRunE(
 				func() error {
 					return viper.BindPFlags(cmd.Flags())
 				},
 				func() error {
-					return flagContainsValue(
+					return flagContains(
 						optOutput,
 						[]string{
 							outputJSON,
@@ -89,10 +55,10 @@ func cmdFoo(opts *Opts) *Cmd {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, err := config.Load()
 			if err != nil {
-				return wrapError(1, err)
+				return wrapError(exitFailure, err)
 			}
 
-			list := formatter.FooList{
+			fooList := formatter.FooList{
 				formatter.Foo{
 					ID:   1,
 					Name: "First Name",
@@ -105,16 +71,19 @@ func cmdFoo(opts *Opts) *Cmd {
 				},
 			}
 
-			f, err := formatter.Format(list, &formatter.Opts{
-				Output: formatter.Output(viper.GetString(optOutput)),
-			})
-
+			fooOutput, err := formatter.Format(
+				fooList, &formatter.Opts{
+					Output: formatter.Output(
+						viper.GetString(optOutput),
+					),
+				},
+			)
 			if err != nil {
-				return wrapError(1, err)
+				return wrapError(exitFailure, err)
 			}
 
-			if err := cmdWrite(cmd, f); err != nil {
-				return wrapError(1, err)
+			if err := print(cmd, fooOutput); err != nil {
+				return wrapError(exitFailure, err)
 			}
 
 			return nil

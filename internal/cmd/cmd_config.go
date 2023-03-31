@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -103,19 +104,21 @@ func cmdConfigInit(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			v := viper.New()
-			v.Set(optAccount, cfg.Account)
-			v.Set(optAccessToken, cfg.AccessToken)
+			cfgViper := viper.New()
+
+			cfgViper.Set(optAccount, cfg.Account)
+			cfgViper.Set(optAccessToken, cfg.AccessToken)
+
 			if cfg.BaseURL != "" {
-				v.Set(optBaseURL, cfg.BaseURL)
+				cfgViper.Set(optBaseURL, cfg.BaseURL)
 			}
 
 			if cfg.Sandbox {
-				v.Set(optSandbox, cfg.Sandbox)
+				cfgViper.Set(optSandbox, cfg.Sandbox)
 			}
 
-			cfgPath := filepath.Join(home, binaryName, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
-			if err := v.WriteConfigAs(cfgPath); err != nil {
+			cfgPath := filepath.Join(home, bin, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
+			if err := cfgViper.WriteConfigAs(cfgPath); err != nil {
 				return wrapError(exitFailure, err)
 			}
 
@@ -123,7 +126,10 @@ func cmdConfigInit(opts *Opts) *Cmd {
 		},
 	}
 
-	return initCmd(cmd, withOpts(opts))
+	return initCmd(
+		cmd,
+		withOpts(opts),
+	)
 }
 
 func cmdConfigGet(opts *Opts) *Cmd {
@@ -131,16 +137,18 @@ func cmdConfigGet(opts *Opts) *Cmd {
 		Use:   "get",
 		Short: "Manage configurations",
 		Args: func(cmd *cobra.Command, args []string) error {
-			validate := cobra.ExactArgs(1)
-			if err := validate(cmd, args); err != nil {
-				return err
-			}
+			return preRunE(
+				func() error {
+					return cobra.ExactArgs(1)(cmd, args)
+				},
+				func() error {
+					if _, ok := configProps[args[0]]; !ok {
+						return errors.New("not found")
+					}
 
-			if _, ok := configProps[args[0]]; !ok {
-				return newError(exitFailure, "not found")
-			}
-
-			return nil
+					return nil
+				},
+			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.Println(viper.GetString(args[0]))
@@ -149,7 +157,10 @@ func cmdConfigGet(opts *Opts) *Cmd {
 		},
 	}
 
-	return initCmd(cmd, withOpts(opts))
+	return initCmd(
+		cmd,
+		withOpts(opts),
+	)
 }
 
 func cmdConfigSet(opts *Opts) *Cmd {
@@ -157,16 +168,18 @@ func cmdConfigSet(opts *Opts) *Cmd {
 		Use:   "set",
 		Short: "Manage configurations",
 		Args: func(cmd *cobra.Command, args []string) error {
-			validate := cobra.ExactArgs(2)
-			if err := validate(cmd, args); err != nil {
-				return err
-			}
+			return preRunE(
+				func() error {
+					return cobra.ExactArgs(2)(cmd, args)
+				},
+				func() error {
+					if _, ok := configProps[args[0]]; !ok {
+						return errors.New("not found")
+					}
 
-			if _, ok := configProps[args[0]]; !ok {
-				return newError(exitFailure, "not found")
-			}
-
-			return nil
+					return nil
+				},
+			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			validate := cfgValidate[args[0]]
@@ -189,5 +202,8 @@ func cmdConfigSet(opts *Opts) *Cmd {
 		},
 	}
 
-	return initCmd(cmd, withOpts(opts))
+	return initCmd(
+		cmd,
+		withOpts(opts),
+	)
 }

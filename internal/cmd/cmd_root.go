@@ -19,6 +19,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,15 +34,15 @@ var (
 )
 
 const (
-	binaryName        = "template"
+	bin               = "template"
 	defaultProfile    = "default"
 	envDev            = "DEV"
 	envPrefix         = "TEMPLATE"
 	envProd           = "PROD"
 	envSandbox        = "SANDBOX"
-	envCfgFile        = "TEMPLATE_CONFIG_FILE"
+	envConfigFile     = "TEMPLATE_CONFIG_FILE"
 	envProfile        = "TEMPLATE_PROFILE"
-	envCfgHome        = "XDG_CONFIG_HOME"
+	envConfigHome     = "XDG_CONFIG_HOME"
 	outputJSON        = "json"
 	outputTable       = "table"
 	outputText        = "text"
@@ -60,16 +61,20 @@ const (
 	optQuery          = "query"
 	optRecordID       = "record-id"
 	optSandbox        = "sandbox"
-	optionFromFile    = "from-file"
+	optFromFile       = "from-file"
 	pathConfigFile    = "/etc/template"
 )
 
 func init() {
-	cobra.OnInitialize(initConfig)
-	viperBindEnv()
+	cobra.OnInitialize(initCfg)
+	viperBindFlags()
 }
 
 func Run() error {
+	return run()
+}
+
+func run() error {
 	opts, err := InitOpts()
 	if err != nil {
 		return err
@@ -83,9 +88,8 @@ func runWithOpts(opts *Opts) error {
 }
 
 func cmdRoot(opts *Opts) *Cmd {
-
 	cmd := &cobra.Command{
-		Use: binaryName,
+		Use: bin,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return viper.BindPFlags(cmd.PersistentFlags())
 		},
@@ -102,7 +106,7 @@ func cmdRoot(opts *Opts) *Cmd {
 	)
 }
 
-func initConfig() {
+func initCfg() {
 	var (
 		cfgFile string
 		cfgName string
@@ -114,26 +118,26 @@ func initConfig() {
 		cfgFile = configFile
 	}
 
-	if path := os.Getenv(envCfgFile); path != "" && configFile == "" {
+	if path := os.Getenv(envConfigFile); path != "" && configFile == "" {
 		cfgFile = path
 	}
 
 	cfgName = defaultProfile
 
-	if dir := os.Getenv(envCfgHome); dir != "" {
+	if dir := os.Getenv(envConfigHome); dir != "" {
 		dir, err = os.UserConfigDir()
 		cobra.CheckErr(err)
 
 		cfgDir = dir
 	} else {
-		if os.Getenv(envCfgHome) != "" {
-			dir := os.Getenv(envCfgHome)
+		if os.Getenv(envConfigHome) != "" {
+			dir := os.Getenv(envConfigHome)
 			if dir == "" {
 				dir, err = os.UserConfigDir()
 				cobra.CheckErr(err)
 			}
 
-			cfgDir = filepath.Join(dir, binaryName)
+			cfgDir = filepath.Join(dir, bin)
 
 			if env := os.Getenv(envProfile); env != "" {
 				cfgName = env
@@ -163,9 +167,9 @@ type Cmd struct {
 
 type cmdOption func(*cobra.Command)
 
-func initCmd(cmd *cobra.Command, applyFn ...cmdOption) *Cmd {
-	for _, apply := range applyFn {
-		apply(cmd)
+func initCmd(cmd *cobra.Command, opts ...cmdOption) *Cmd {
+	for _, opt := range opts {
+		opt(cmd)
 	}
 
 	return &Cmd{
@@ -173,14 +177,14 @@ func initCmd(cmd *cobra.Command, applyFn ...cmdOption) *Cmd {
 	}
 }
 
-func viperBindEnv() {
+func viperBindFlags() {
 	for _, v := range os.Environ() {
-		parts := strings.Split(v, "=")
-		if len(parts) != 2 {
+		envParts := strings.Split(v, "=")
+		if len(envParts) != 2 {
 			continue
 		}
 
-		if !strings.HasPrefix(parts[0], envPrefix+"_") {
+		if !strings.HasPrefix(envParts[0], envPrefix+"_") {
 			continue
 		}
 
@@ -189,7 +193,7 @@ func viperBindEnv() {
 			continue
 		}
 
-		viper.BindEnv(env, parts[0])
+		_ = viper.BindEnv(env, envParts[0])
 	}
 }
 
@@ -202,14 +206,45 @@ func flagToEnv(env string) string {
 
 func envToFlag(env string) (string, error) {
 	env = strings.TrimPrefix(env, envPrefix+"_")
-	parts := strings.Split(env, "=")
+	envParts := strings.Split(env, "=")
 
-	if len(parts) != 2 {
+	if len(envParts) != 2 {
 		return "", errors.New("Invalid env var")
 	}
 
-	env = strings.ToLower(parts[0])
+	env = strings.ToLower(envParts[0])
 	env = strings.ReplaceAll(env, "_", "-")
 
 	return env, nil
+}
+
+func print(cmd *cobra.Command, r io.Reader) error {
+	if _, err := io.Copy(cmd.OutOrStdout(), r); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func flagContains(flag string, values []string) error {
+	flagValue := viper.GetString(flag)
+
+	for _, value := range values {
+		if flagValue == value {
+			return nil
+		}
+	}
+
+	return fmt.Errorf(`flag "%s" has invalid value "%s"`, flag, flagValue)
+
+}
+
+func preRunE(fn ...func() error) error {
+	for _, preRun := range fn {
+		if err := preRun(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
