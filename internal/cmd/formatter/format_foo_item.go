@@ -7,9 +7,9 @@ import (
 	"io"
 )
 
-type DSRItem Foo
+type FooItem Foo
 
-func (d DSRItem) FormatText(opts *Opts) (io.Reader, error) {
+func (f FooItem) FormatText(opts *Opts) (io.Reader, error) {
 	keys := []string{
 		"id",
 		"name",
@@ -19,14 +19,14 @@ func (d DSRItem) FormatText(opts *Opts) (io.Reader, error) {
 	const txtLen = 8
 
 	values := map[string]interface{}{
-		"id":   d.ID,
-		"name": d.Name,
-		"age":  d.Age,
+		"id":   f.ID,
+		"name": f.Name,
+		"age":  f.Age,
 	}
 
 	titles := map[string]string{
 		"id":   "ID",
-		"name": "Domain ID",
+		"name": "Name",
 		"age":  "Age",
 	}
 
@@ -38,14 +38,14 @@ func (d DSRItem) FormatText(opts *Opts) (io.Reader, error) {
 	return buf, nil
 }
 
-func (d DSRItem) FormatJSON(opts *Opts) (io.Reader, error) {
+func (d FooItem) FormatJSON(opts *Opts) (io.Reader, error) {
 	return formatJSON(d, opts)
 }
 
-func (d DSRItem) FormatYAML(opts *Opts) (io.Reader, error) {
+func (d FooItem) FormatYAML(opts *Opts) (io.Reader, error) {
 	return formatYAML(d, opts)
 }
 
-func (d DSRItem) formatJSON(opts *Opts) ([]byte, error) {
+func (d FooItem) formatJSON(opts *Opts) ([]byte, error) {
 	return json.MarshalIndent(d, "", "  ")
 }

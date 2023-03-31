@@ -14,23 +14,23 @@ type Foo struct {
 
 type FooList []Foo
 
-func (a FooList) FormatJSON(opts *Opts) (io.Reader, error) {
-	return formatJSON(a, opts)
+func (f FooList) FormatJSON(opts *Opts) (io.Reader, error) {
+	return formatJSON(f, opts)
 }
 
-func (a FooList) FormatYAML(opts *Opts) (io.Reader, error) {
-	return formatYAML(a, opts)
+func (f FooList) FormatYAML(opts *Opts) (io.Reader, error) {
+	return formatYAML(f, opts)
 }
 
-func (a FooList) FormatTable(_ *Opts) (io.Reader, error) {
-	return formatTable(a)
+func (f FooList) FormatTable(_ *Opts) (io.Reader, error) {
+	return formatTable(f)
 }
 
-func (a FooList) formatJSON(opts *Opts) ([]byte, error) {
-	return json.MarshalIndent(a, "", "  ")
+func (f FooList) formatJSON(opts *Opts) ([]byte, error) {
+	return json.MarshalIndent(f, "", "  ")
 }
 
-func (a FooList) formatHeader() []string {
+func (f FooList) formatHeader() []string {
 	return []string{
 		"ID",
 		"NAME",
@@ -38,10 +38,10 @@ func (a FooList) formatHeader() []string {
 	}
 }
 
-func (a FooList) formatRows() []map[string]string {
-	data := make([]map[string]string, 0, len(a))
+func (f FooList) formatRows() []map[string]string {
+	data := make([]map[string]string, 0, len(f))
 
-	fooList := a
+	fooList := f
 
 	const txtLen = 10
 
