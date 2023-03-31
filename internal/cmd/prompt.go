@@ -24,12 +24,12 @@ import (
 )
 
 func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
-	res, err := execPrompt(
-		promptAccount(c.Account),
-		promptAccessToken(c.AccessToken),
-		promptBaseURL("https://example.con"),
-		promptFileFmt(cfgFmtJSON),
-		promptConfirm("Do you want to save?", true),
+	res, err := prompt(
+		execAccountPrompt(c.Account),
+		execAccessTokenPrompt(c.AccessToken),
+		execBaseURLPrompt("https://example.con"),
+		execFileFmtPrompt(cfgFmtJSON),
+		execConfirmPrompt("Do you want to save?", true),
 	)
 
 	if err != nil {
@@ -60,8 +60,8 @@ func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
 	return &cfg, format, nil
 }
 
-func promptAccessToken(value string) runPromptFunc {
-	return runPromptFunc(func() (*promptResult, error) {
+func execAccessTokenPrompt(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var token string
 
 		if err := survey.AskOne(
@@ -74,15 +74,15 @@ func promptAccessToken(value string) runPromptFunc {
 			return nil, err
 		}
 
-		return &promptResult{
+		return &promptRunnerResult{
 			Name:  optAccessToken,
 			Value: token,
 		}, nil
 	})
 }
 
-func promptAccount(value string) runPromptFunc {
-	return runPromptFunc(func() (*promptResult, error) {
+func execAccountPrompt(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var account string
 
 		if err := survey.AskOne(
@@ -95,15 +95,15 @@ func promptAccount(value string) runPromptFunc {
 			return nil, err
 		}
 
-		return &promptResult{
+		return &promptRunnerResult{
 			Name:  optAccount,
 			Value: account,
 		}, nil
 	})
 }
 
-func promptEnvironment(value string) runPromptFunc {
-	return runPromptFunc(func() (*promptResult, error) {
+func execEnvPrompt(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var env string
 
 		if err := survey.AskOne(
@@ -121,15 +121,15 @@ func promptEnvironment(value string) runPromptFunc {
 			return nil, err
 		}
 
-		return &promptResult{
+		return &promptRunnerResult{
 			Name:  optAccessToken,
 			Value: env,
 		}, nil
 	})
 }
 
-func promptBaseURL(value string) runPromptFunc {
-	return runPromptFunc(func() (*promptResult, error) {
+func execBaseURLPrompt(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var url string
 
 		if err := survey.AskOne(
@@ -142,15 +142,15 @@ func promptBaseURL(value string) runPromptFunc {
 			return nil, err
 		}
 
-		return &promptResult{
+		return &promptRunnerResult{
 			Name:  optBaseURL,
 			Value: url,
 		}, nil
 	})
 }
 
-func promptFileFmt(value string) runPromptFunc {
-	return runPromptFunc(func() (*promptResult, error) {
+func execFileFmtPrompt(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var format string
 
 		if err := survey.AskOne(
@@ -168,15 +168,15 @@ func promptFileFmt(value string) runPromptFunc {
 			return nil, err
 		}
 
-		return &promptResult{
+		return &promptRunnerResult{
 			Name:  optFormat,
 			Value: format,
 		}, nil
 	})
 }
 
-func promptConfirm(msg string, value bool) runPromptFunc {
-	return runPromptFunc(func() (*promptResult, error) {
+func execConfirmPrompt(msg string, value bool) runPromptFunc {
+	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var confirmation bool
 
 		if err := survey.AskOne(
@@ -189,31 +189,31 @@ func promptConfirm(msg string, value bool) runPromptFunc {
 			return nil, err
 		}
 
-		return &promptResult{
+		return &promptRunnerResult{
 			Name:  "confirmation",
 			Value: confirmation,
 		}, nil
 	})
 }
 
-type promptResult struct {
+type promptRunnerResult struct {
 	Name  string
 	Value interface{}
 }
 
 type promptRunner interface {
-	runPrompt() (*promptResult, error)
+	runPrompt() (*promptRunnerResult, error)
 }
 
-type runPromptFunc func() (*promptResult, error)
+type runPromptFunc func() (*promptRunnerResult, error)
 
-func (rpf runPromptFunc) runPrompt() (*promptResult, error) {
+func (rpf runPromptFunc) runPrompt() (*promptRunnerResult, error) {
 	return rpf()
 }
 
-type runPromptResult map[string]interface{}
+type promptResult map[string]interface{}
 
-func (rpr runPromptResult) Get(key string) interface{} {
+func (rpr promptResult) Get(key string) interface{} {
 	if s, ok := rpr[key]; ok {
 		return s
 	}
@@ -221,7 +221,7 @@ func (rpr runPromptResult) Get(key string) interface{} {
 	return nil
 }
 
-func (rpr runPromptResult) GetString(key string) string {
+func (rpr promptResult) GetString(key string) string {
 	value := rpr.Get(key)
 	if value == nil {
 		return ""
@@ -230,7 +230,49 @@ func (rpr runPromptResult) GetString(key string) string {
 	return value.(string)
 }
 
-func execPrompt(promptRunners ...promptRunner) (runPromptResult, error) {
+func (rpr promptResult) GetInt(key string) int {
+	value := rpr.Get(key)
+	if value == nil {
+		return 0
+	}
+
+	return value.(int)
+}
+
+func (rpr promptResult) GetBool(key string) bool {
+	value := rpr.Get(key)
+	if value == nil {
+		return false
+	}
+
+	return value.(bool)
+}
+
+func (rpr promptResult) GetInt64(key string) int64 {
+	value := rpr.Get(key)
+	if value == nil {
+		return 0
+	}
+
+	return value.(int64)
+}
+
+func (rpr promptResult) GetInt32(key string) int32 {
+	value := rpr.Get(key)
+	if value == nil {
+		return 0
+	}
+
+	return value.(int32)
+}
+
+func (rpr promptResult) HasKey(key string) bool {
+	_, ok := rpr[key]
+
+	return ok
+}
+
+func prompt(promptRunners ...promptRunner) (promptResult, error) {
 	result := make(map[string]interface{})
 
 	for _, r := range promptRunners {
