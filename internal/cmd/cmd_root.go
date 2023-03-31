@@ -35,7 +35,7 @@ var (
 
 const (
 	cmdName           = "template"
-	defaultProfile    = "default"
+	defaultProfile    = "main"
 	envConfigFile     = "TEMPLATE_CONFIG_FILE"
 	envConfigHome     = "XDG_CONFIG_HOME"
 	envDev            = "DEV"
@@ -56,6 +56,7 @@ const (
 	optPage           = "page"
 	optPerPage        = "per-page"
 	optProfile        = "profile"
+	optNoInteractive  = "no-interactive"
 	optQuery          = "query"
 	optRecordID       = "record-id"
 	optSandbox        = "sandbox"
@@ -179,43 +180,42 @@ func initCmd(cmd *cobra.Command, opts ...cmdOption) *Cmd {
 }
 
 func viperBindFlags() {
-	for _, v := range os.Environ() {
-		envParts := strings.Split(v, "=")
+	for _, env := range os.Environ() {
+		envParts := strings.Split(env, "=")
 		if len(envParts) != 2 {
 			continue
 		}
 
-		if !strings.HasPrefix(envParts[0], envPrefix+"_") {
+		if !strings.HasPrefix(envParts[0], fmt.Sprintf("%s_", envPrefix)) {
 			continue
 		}
 
-		env, err := envToFlag(v)
+		flag, err := envToFlag(env)
 		if err != nil {
 			continue
 		}
 
-		_ = viper.BindEnv(env, envParts[0])
+		_ = viper.BindEnv(flag, envParts[0])
 	}
 }
 
-func flagToEnv(env string) string {
-	env = strings.ReplaceAll(env, "-", "_")
-	env = strings.ToUpper(env)
+func flagToEnv(flag string) string {
+	env := strings.ToUpper(strings.ReplaceAll(flag, "-", "_"))
 
 	return fmt.Sprintf("%s_%s", envPrefix, env)
 }
 
 func envToFlag(env string) (string, error) {
-	env = strings.TrimPrefix(env, envPrefix+"_")
-	envParts := strings.Split(env, "=")
-
+	envParts := strings.Split(
+		strings.TrimPrefix(env, fmt.Sprintf("%s_", envPrefix)), "=",
+	)
 	if len(envParts) != 2 {
 		return "", errors.New("Invalid env var")
 	}
 
-	env = strings.ReplaceAll(strings.ToLower(envParts[0]), "_", "-")
+	flag := strings.ReplaceAll(strings.ToLower(envParts[0]), "_", "-")
 
-	return env, nil
+	return flag, nil
 }
 
 func print(cmd *cobra.Command, r io.Reader) error {

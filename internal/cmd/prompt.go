@@ -50,14 +50,14 @@ func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
 		cfg.BaseURL = value
 	}
 
-	var fileFormat string
+	var format string
 	if value := res.GetString(optFormat); value != "" {
-		fileFormat = value
+		format = value
 	}
 
 	fmt.Printf("%#v\n", cfg)
 
-	return &cfg, fileFormat, nil
+	return &cfg, format, nil
 }
 
 func promptAccessToken(value string) runPromptFunc {
@@ -207,22 +207,22 @@ type promptRunner interface {
 
 type runPromptFunc func() (*promptResult, error)
 
-func (r runPromptFunc) runPrompt() (*promptResult, error) {
-	return r()
+func (rpf runPromptFunc) runPrompt() (*promptResult, error) {
+	return rpf()
 }
 
 type runPromptResult map[string]interface{}
 
-func (r runPromptResult) Get(key string) interface{} {
-	if s, ok := r[key]; ok {
+func (rpr runPromptResult) Get(key string) interface{} {
+	if s, ok := rpr[key]; ok {
 		return s
 	}
 
 	return nil
 }
 
-func (r runPromptResult) GetString(key string) string {
-	value := r.Get(key)
+func (rpr runPromptResult) GetString(key string) string {
+	value := rpr.Get(key)
 	if value == nil {
 		return ""
 	}
@@ -230,11 +230,11 @@ func (r runPromptResult) GetString(key string) string {
 	return value.(string)
 }
 
-func execPrompt(runners ...promptRunner) (runPromptResult, error) {
+func execPrompt(promptRunners ...promptRunner) (runPromptResult, error) {
 	result := make(map[string]interface{})
 
-	for _, runner := range runners {
-		res, err := runner.runPrompt()
+	for _, r := range promptRunners {
+		res, err := r.runPrompt()
 		if err != nil {
 			return nil, err
 		}

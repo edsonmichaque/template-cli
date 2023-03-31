@@ -24,6 +24,7 @@ import (
 func withFlagsGlobal() cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.PersistentFlags().Bool(optSandbox, false, "Sandbox environment")
+		cmd.PersistentFlags().Bool(optNoInteractive, false, "No interactive")
 		cmd.PersistentFlags().String(optAccessToken, "", "Access token")
 		cmd.PersistentFlags().String(optAccount, "", "Account")
 		cmd.PersistentFlags().String(optBaseURL, "", "Base URL")
