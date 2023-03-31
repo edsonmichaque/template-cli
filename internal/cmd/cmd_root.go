@@ -33,36 +33,35 @@ var (
 )
 
 const (
-	binaryName            = "template"
-	defaultProfile        = "default"
-	envDev                = "DEV"
-	envPrefix             = "TEMPLATE"
-	envProd               = "PROD"
-	envSandbox            = "SANDBOX"
-	envTemplateConfigFile = "TEMPLATE_CONFIG_FILE"
-	envTemplateProfile    = "TEMPLATE_PROFILE"
-	envXDGConfigHome      = "XDG_CONFIG_HOME"
-	formatJSON            = "json"
-	formatTable           = "table"
-	formatText            = "text"
-	formatYAML            = "yaml"
-	optAccessToken        = "access-token"
-	optAccount            = "account"
-	optBaseURL            = "base-url"
-	optCollaboratorID     = "collaborator-id"
-	optConfigFile         = "config-file"
-	optConfirm            = "confirm"
-	optDomain             = "domain"
-	optOutput             = "output"
-	optPage               = "page"
-	optPerPage            = "per-page"
-	optProfile            = "profile"
-	optQuery              = "query"
-	optRecordID           = "record-id"
-	optSandbox            = "sandbox"
-	optionFromFile        = "from-file"
-	pathConfigFile        = "/etc/template"
-	pathTemplate          = "template"
+	binaryName        = "template"
+	defaultProfile    = "default"
+	envDev            = "DEV"
+	envPrefix         = "TEMPLATE"
+	envProd           = "PROD"
+	envSandbox        = "SANDBOX"
+	envCfgFile        = "TEMPLATE_CONFIG_FILE"
+	envProfile        = "TEMPLATE_PROFILE"
+	envCfgHome        = "XDG_CONFIG_HOME"
+	formatJSON        = "json"
+	formatTable       = "table"
+	formatText        = "text"
+	formatYAML        = "yaml"
+	optAccessToken    = "access-token"
+	optAccount        = "account"
+	optBaseURL        = "base-url"
+	optCollaboratorID = "collaborator-id"
+	optConfigFile     = "config-file"
+	optConfirm        = "confirm"
+	optDomain         = "domain"
+	optOutput         = "output"
+	optPage           = "page"
+	optPerPage        = "per-page"
+	optProfile        = "profile"
+	optQuery          = "query"
+	optRecordID       = "record-id"
+	optSandbox        = "sandbox"
+	optionFromFile    = "from-file"
+	pathConfigFile    = "/etc/template"
 )
 
 func init() {
@@ -71,19 +70,19 @@ func init() {
 }
 
 func Run() error {
-	opts, err := NewOptions()
+	opts, err := InitOpts()
 	if err != nil {
 		return err
 	}
 
-	return runWithOptions(opts)
+	return runWithOpts(opts)
 }
 
-func runWithOptions(opts *Options) error {
+func runWithOpts(opts *Opts) error {
 	return cmdRoot(opts).Execute()
 }
 
-func cmdRoot(opts *Options) *Cmd {
+func cmdRoot(opts *Opts) *Cmd {
 
 	cmd := &cobra.Command{
 		Use: binaryName,
@@ -95,40 +94,80 @@ func cmdRoot(opts *Options) *Cmd {
 
 	return initCmd(
 		cmd,
-		withSubcommand(cmdFoo(opts)),
-		withSubcommand(cmdBar(opts)),
-		withSubcommand(cmdConfig(opts)),
-		withSubcommand(cmdVersion(opts)),
-		withGlobalFlags(),
+		withCmd(cmdFoo(opts)),
+		withCmd(cmdBar(opts)),
+		withCmd(cmdConfig(opts)),
+		withCmd(cmdVersion(opts)),
+		withFlagsGlobal(),
 	)
 }
 
+func cfgCfg(env string) (string, error) {
+	var (
+		dir string
+		err error
+	)
+
+	if dir = os.Getenv(envCfgHome); dir != "" {
+		dir, err = os.UserConfigDir()
+		if err != nil {
+			return "", err
+		}
+	}
+
+	cfgDir = filepath.Join(dir, binaryName)
+
+	if env := os.Getenv(envProfile); env != "" {
+		cfgName = env
+	}
+}
+
 func initConfig() {
+	var (
+		cfgFile string
+		cfgName string
+		cfgDir  string
+	)
+
 	var err error
 	if configFile != "" {
-		viper.SetConfigFile(configFile)
-	} else if configFile := os.Getenv(envTemplateConfigFile); configFile != "" {
-		viper.SetConfigFile(configFile)
-	} else {
-		configHome := os.Getenv(envXDGConfigHome)
-		if configHome == "" {
-			configHome, err = os.UserConfigDir()
+		cfgFile = configFile
+	}
+
+	if path := os.Getenv(envCfgFile); path != "" && configFile == "" {
+		cfgFile = path
+	}
+
+	cfgName = defaultProfile
+
+	if dir := os.Getenv(envCfgHome); dir != "" {
+		dir, err = os.UserConfigDir()
+		cobra.CheckErr(err)
+
+		cfgDir = dir
+	}
+
+	if os.Getenv(envCfgHome) != "" {
+		dir := os.Getenv(envCfgHome)
+		if dir == "" {
+			dir, err = os.UserConfigDir()
 			cobra.CheckErr(err)
 		}
 
-		viper.AddConfigPath(filepath.Join(configHome, pathTemplate))
-		viper.AddConfigPath(pathConfigFile)
-		viper.SetConfigType(configFormatYAML)
+		cfgDir = filepath.Join(dir, binaryName)
 
-		viper.SetConfigName(defaultProfile)
-
-		if profileEnv := os.Getenv(envTemplateProfile); profileEnv != "" {
-			viper.SetConfigName(profileEnv)
+		if env := os.Getenv(envProfile); env != "" {
+			cfgName = env
 		}
+	}
 
-		if profile != "" {
-			viper.SetConfigName(profile)
-		}
+	if cfgFile != "" {
+		viper.SetConfigFile(cfgFile)
+	}
+
+	if cfgDir != "" && cfgName != "" {
+		viper.AddConfigPath(cfgDir)
+		viper.SetConfigName(cfgName)
 	}
 
 	if err := viper.ReadInConfig(); err != nil {

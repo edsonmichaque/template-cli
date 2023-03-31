@@ -26,13 +26,13 @@ func wrapError(code int, err error) Error {
 	}
 }
 
-func NewOptions() (*Options, error) {
+func InitOpts() (*Opts, error) {
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Options{
+	return &Opts{
 		Stdin:   os.Stdin,
 		Stderr:  os.Stderr,
 		Stdout:  os.Stdout,
@@ -40,13 +40,13 @@ func NewOptions() (*Options, error) {
 	}, nil
 }
 
-type Options struct {
+type Opts struct {
 	Stdout  io.Writer
 	Stdin   io.Reader
 	Stderr  io.Writer
 	WorkDir string
 }
 
-func (c Options) Validate() error {
+func (c Opts) Validate() error {
 	return nil
 }

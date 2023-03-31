@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bytes"
 	"io"
 	"log"
 	"os"
@@ -64,11 +65,15 @@ func TestBar(t *testing.T) {
 
 type Process struct {
 	Command string
-	Stdout  io.Writer
+	Stdout  *bytes.Buffer
 	Stdin   io.Reader
 	Stderr  io.Writer
 	Args    []string
 	Env     []string
+}
+
+func (p Process) ErrContains(s string) bool {
+
 }
 
 func (m *Process) Run() error {

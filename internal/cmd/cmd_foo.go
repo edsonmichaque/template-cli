@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func cmdFoo(opts *Options) *Cmd {
+func cmdFoo(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "foo",
 		Short: "List accounts",

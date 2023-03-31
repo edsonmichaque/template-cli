@@ -156,7 +156,7 @@ func promptBaseURL(value string) (string, error) {
 func promptFileFormat(value string) (string, error) {
 	prompt := &survey.Select{
 		Message: "File format",
-		Options: []string{configFormatJSON, configFormatYAML, configFormatTOML},
+		Options: []string{configFormatJSON, cfgFormatYAML, configFormatTOML},
 		Default: value,
 	}
 

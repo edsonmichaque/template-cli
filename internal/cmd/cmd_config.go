@@ -30,7 +30,7 @@ import (
 
 const (
 	configFormatJSON = "json"
-	configFormatYAML = "yaml"
+	cfgFormatYAML    = "yaml"
 	configFormatTOML = "toml"
 	configFormatYML  = "yml"
 )
@@ -62,7 +62,7 @@ var (
 	}
 )
 
-func cmdConfig(opts *Options) *Cmd {
+func cmdConfig(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage configurations",
@@ -71,7 +71,7 @@ func cmdConfig(opts *Options) *Cmd {
 	return initCmd(
 		cmd,
 		withOptions(opts),
-		withSubcommand(
+		withCmd(
 			cmdConfigInit(opts),
 			cmdConfigGet(opts),
 			cmdConfigSet(opts),
@@ -79,7 +79,7 @@ func cmdConfig(opts *Options) *Cmd {
 	)
 }
 
-func cmdConfigInit(opts *Options) *Cmd {
+func cmdConfigInit(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Manage configurations",
@@ -114,7 +114,7 @@ func cmdConfigInit(opts *Options) *Cmd {
 				v.Set(optSandbox, cfg.Sandbox)
 			}
 
-			cfgPath := filepath.Join(home, pathTemplate, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
+			cfgPath := filepath.Join(home, binName, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
 			if err := v.WriteConfigAs(cfgPath); err != nil {
 				return wrapError(exitFailure, err)
 			}
@@ -126,7 +126,7 @@ func cmdConfigInit(opts *Options) *Cmd {
 	return initCmd(cmd, withOptions(opts))
 }
 
-func cmdConfigGet(opts *Options) *Cmd {
+func cmdConfigGet(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Manage configurations",
@@ -152,7 +152,7 @@ func cmdConfigGet(opts *Options) *Cmd {
 	return initCmd(cmd, withOptions(opts))
 }
 
-func cmdConfigSet(opts *Options) *Cmd {
+func cmdConfigSet(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Manage configurations",

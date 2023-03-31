@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func withGlobalFlags() cmdOption {
+func withFlagsGlobal() cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.PersistentFlags().Bool(optSandbox, false, "Sandbox environment")
 		cmd.PersistentFlags().String(optAccessToken, "", "Access token")
@@ -33,7 +33,7 @@ func withQueryFlag() cmdOption {
 	}
 }
 
-func withOptions(opts *Options) cmdOption {
+func withOptions(opts *Opts) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.SetOutput(opts.Stdout)
 		cmd.SetIn(opts.Stdin)
@@ -41,8 +41,8 @@ func withOptions(opts *Options) cmdOption {
 	}
 }
 
-// withSubcommand adds subcommand to command
-func withSubcommand(children ...*Cmd) cmdOption {
+// withCmd adds subcommand to command
+func withCmd(children ...*Cmd) cmdOption {
 	return func(cmd *cobra.Command) {
 		for _, c := range children {
 			cmd.AddCommand(c.Command)
