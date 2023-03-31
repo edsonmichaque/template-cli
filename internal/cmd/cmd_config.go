@@ -161,17 +161,18 @@ func cmdConfigGet(opts *Opts) *Cmd {
 				},
 			)
 		},
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return viper.BindPFlags(cmd.Flags())
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// cmd.Println(viper.GetString(args[0]))
-
 			cfg := &config.Config{
-				Account:     "1",
-				AccessToken: "2",
-				BaseURL:     "example.com",
+				Account:     "123456",
+				AccessToken: "456789",
+				BaseURL:     "https://example.com",
 			}
 
 			resp, err := formatter.Format(formatter.ToConfigList(cfg), &formatter.Opts{
-				Output: formatter.OutputTable,
+				Output: formatter.Output(viper.GetString(optOutput)),
 			})
 			if err != nil {
 				return wrapError(1, err)
@@ -187,6 +188,7 @@ func cmdConfigGet(opts *Opts) *Cmd {
 
 	return initCmd(
 		cmd,
+		withFlagOutput(outputTable),
 		withOpts(opts),
 	)
 }

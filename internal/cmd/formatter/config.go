@@ -15,6 +15,20 @@ type Config struct {
 	Value string       `json:"value"`
 }
 
+func (c Config) MarshalJSON() ([]byte, error) {
+	config := struct {
+		Name  string `json:"name"`
+		Type  string `json:"type"`
+		Value string `json:"value"`
+	}{
+		Name:  c.Name,
+		Type:  fmt.Sprintf("%v", c.Type),
+		Value: c.Value,
+	}
+
+	return json.Marshal(config)
+}
+
 type ConfigList []Config
 
 func ToConfigList(c *config.Config) ConfigList {
