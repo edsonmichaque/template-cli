@@ -31,10 +31,10 @@ import (
 )
 
 const (
-	cfgFormatJSON = "json"
-	cfgFormatYAML = "yaml"
-	cfgFormatTOML = "toml"
-	cfgFormatYML  = "yml"
+	cfgFmtJSON = "json"
+	cfgFmtYAML = "yaml"
+	cfgFmtTOML = "toml"
+	cfgFmtYML  = "yml"
 )
 
 var (

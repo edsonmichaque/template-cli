@@ -25,10 +25,10 @@ import (
 
 func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
 	res, err := runPrompt(
-		promptAccountID(c.Account),
+		promptAccount(c.Account),
 		promptAccessToken(c.AccessToken),
 		promptBaseURL("https://example.con"),
-		promptFileFormat(cfgFormatJSON),
+		promptFileFmt(cfgFmtJSON),
 		promptConfirm("Do you want to save?", true),
 	)
 
@@ -62,14 +62,15 @@ func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
 
 func promptAccessToken(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptResult, error) {
-
-		prompt := &survey.Input{
-			Message: "Access Token",
-			Default: value,
-		}
-
 		var token string
-		if err := survey.AskOne(prompt, &token); err != nil {
+
+		if err := survey.AskOne(
+			&survey.Input{
+				Message: "Access token",
+				Default: value,
+			},
+			&token,
+		); err != nil {
 			return nil, err
 		}
 
@@ -80,36 +81,43 @@ func promptAccessToken(value string) runPromptFunc {
 	})
 }
 
-func promptAccountID(value string) runPromptFunc {
+func promptAccount(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptResult, error) {
-		prompt := &survey.Input{
-			Message: "Account ID",
-			Default: value,
-		}
+		var account string
 
-		var accountID string
-		if err := survey.AskOne(prompt, &accountID); err != nil {
+		if err := survey.AskOne(
+			&survey.Input{
+				Message: "Account",
+				Default: value,
+			},
+			&account,
+		); err != nil {
 			return nil, err
 		}
 
 		return &promptResult{
 			Name:  optAccount,
-			Value: accountID,
+			Value: account,
 		}, nil
 	})
 }
 
 func promptEnvironment(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptResult, error) {
-
-		prompt := &survey.Select{
-			Message: "Environment",
-			Options: []string{envProd, envSandbox, envDev},
-			Default: value,
-		}
-
 		var env string
-		if err := survey.AskOne(prompt, &env); err != nil {
+
+		if err := survey.AskOne(
+			&survey.Select{
+				Message: "Environment",
+				Options: []string{
+					envProd,
+					envSandbox,
+					envDev,
+				},
+				Default: value,
+			},
+			&env,
+		); err != nil {
 			return nil, err
 		}
 
@@ -122,41 +130,85 @@ func promptEnvironment(value string) runPromptFunc {
 
 func promptBaseURL(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptResult, error) {
-		prompt := &survey.Input{
-			Message: "Base URL",
-			Default: value,
-		}
+		var url string
 
-		var baseURL string
-		if err := survey.AskOne(prompt, &baseURL); err != nil {
+		if err := survey.AskOne(
+			&survey.Input{
+				Message: "Base URL",
+				Default: value,
+			},
+			&url,
+		); err != nil {
 			return nil, err
 		}
 
 		return &promptResult{
 			Name:  optBaseURL,
-			Value: baseURL,
+			Value: url,
 		}, nil
 	})
 }
 
-func promptFileFormat(value string) runPromptFunc {
+func promptFileFmt(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptResult, error) {
-		prompt := &survey.Select{
-			Message: "File format",
-			Options: []string{cfgFormatJSON, cfgFormatYAML, cfgFormatTOML},
-			Default: value,
-		}
+		var format string
 
-		var fileFormat string
-		if err := survey.AskOne(prompt, &fileFormat); err != nil {
+		if err := survey.AskOne(
+			&survey.Select{
+				Message: "File format",
+				Options: []string{
+					cfgFmtJSON,
+					cfgFmtYAML,
+					cfgFmtTOML,
+				},
+				Default: value,
+			},
+			&format,
+		); err != nil {
 			return nil, err
 		}
 
 		return &promptResult{
 			Name:  optFormat,
-			Value: fileFormat,
+			Value: format,
 		}, nil
 	})
+}
+
+func promptConfirm(msg string, value bool) runPromptFunc {
+	return runPromptFunc(func() (*promptResult, error) {
+		var confirmation bool
+
+		if err := survey.AskOne(
+			&survey.Confirm{
+				Message: msg,
+				Default: false,
+			},
+			&confirmation,
+		); err != nil {
+			return nil, err
+		}
+
+		return &promptResult{
+			Name:  "confirmation",
+			Value: confirmation,
+		}, nil
+	})
+}
+
+type promptResult struct {
+	Name  string
+	Value interface{}
+}
+
+type promptRunner interface {
+	runPrompt() (*promptResult, error)
+}
+
+type runPromptFunc func() (*promptResult, error)
+
+func (r runPromptFunc) runPrompt() (*promptResult, error) {
+	return r()
 }
 
 type runPromptResult map[string]interface{}
@@ -178,52 +230,17 @@ func (r runPromptResult) GetString(key string) string {
 	return value.(string)
 }
 
-func runPrompt(items ...promptRunner) (runPromptResult, error) {
-	output := make(map[string]interface{})
+func runPrompt(runners ...promptRunner) (runPromptResult, error) {
+	result := make(map[string]interface{})
 
-	for _, item := range items {
-		kv, err := item.RunPrompt()
+	for _, runner := range runners {
+		res, err := runner.runPrompt()
 		if err != nil {
 			return nil, err
 		}
 
-		output[kv.Name] = kv.Value
+		result[res.Name] = res.Value
 	}
 
-	return output, nil
-}
-
-type promptRunner interface {
-	RunPrompt() (*promptResult, error)
-}
-
-type runPromptFunc func() (*promptResult, error)
-
-func (p runPromptFunc) RunPrompt() (*promptResult, error) {
-	return p()
-}
-
-func promptConfirm(msg string, value bool) runPromptFunc {
-	return runPromptFunc(func() (*promptResult, error) {
-		prompt := &survey.Confirm{
-			Message: msg,
-			Default: false,
-		}
-
-		var confirmation bool
-
-		if err := survey.AskOne(prompt, &confirmation); err != nil {
-			return nil, err
-		}
-
-		return &promptResult{
-			Name:  "confirmation",
-			Value: confirmation,
-		}, nil
-	})
-}
-
-type promptResult struct {
-	Name  string
-	Value interface{}
+	return result, nil
 }

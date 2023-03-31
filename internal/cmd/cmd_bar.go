@@ -50,7 +50,7 @@ func cmdBar(opts *Opts) *Cmd {
 				promptConfirm("Do you want to do it?", false),
 				promptConfirm("Do you want to do it again?", false),
 				promptConfirm("Do you want to do it again again?", false),
-				promptFileFormat(cfgFormatYAML),
+				promptFileFmt(cfgFmtYAML),
 				promptBaseURL("https://example.com"),
 			)
 			if err != nil {
