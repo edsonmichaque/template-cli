@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/edsonmichaque/template-cli/internal/cmd/formatter"
 	"github.com/edsonmichaque/template-cli/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -161,7 +162,24 @@ func cmdConfigGet(opts *Opts) *Cmd {
 			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.Println(viper.GetString(args[0]))
+			// cmd.Println(viper.GetString(args[0]))
+
+			cfg := &config.Config{
+				Account:     "1",
+				AccessToken: "2",
+				BaseURL:     "example.com",
+			}
+
+			resp, err := formatter.Format(formatter.ToConfigList(cfg), &formatter.Opts{
+				Output: formatter.OutputTable,
+			})
+			if err != nil {
+				return wrapError(1, err)
+			}
+
+			if err := print(cmd, resp); err != nil {
+				return wrapError(1, err)
+			}
 
 			return nil
 		},
