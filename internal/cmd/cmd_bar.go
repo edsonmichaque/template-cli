@@ -50,9 +50,9 @@ func cmdBar(opts *Opts) *Cmd {
 
 	return initCmd(
 		cmd,
-		withOutputFlag(formatTable),
-		withQueryFlag(),
-		withOptions(opts),
+		withFlagOutput(formatTable),
+		withFlagQuery(),
+		withOpts(opts),
 	)
 }
 

@@ -70,7 +70,7 @@ func cmdConfig(opts *Opts) *Cmd {
 
 	return initCmd(
 		cmd,
-		withOptions(opts),
+		withOpts(opts),
 		withCmd(
 			cmdConfigInit(opts),
 			cmdConfigGet(opts),
@@ -123,7 +123,7 @@ func cmdConfigInit(opts *Opts) *Cmd {
 		},
 	}
 
-	return initCmd(cmd, withOptions(opts))
+	return initCmd(cmd, withOpts(opts))
 }
 
 func cmdConfigGet(opts *Opts) *Cmd {
@@ -149,7 +149,7 @@ func cmdConfigGet(opts *Opts) *Cmd {
 		},
 	}
 
-	return initCmd(cmd, withOptions(opts))
+	return initCmd(cmd, withOpts(opts))
 }
 
 func cmdConfigSet(opts *Opts) *Cmd {
@@ -189,5 +189,5 @@ func cmdConfigSet(opts *Opts) *Cmd {
 		},
 	}
 
-	return initCmd(cmd, withOptions(opts))
+	return initCmd(cmd, withOpts(opts))
 }

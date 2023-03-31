@@ -19,21 +19,21 @@ func withFlagsGlobal() cmdOption {
 	}
 }
 
-// withOutputFlag adds output flag to command
-func withOutputFlag(value string) cmdOption {
+// withFlagOutput adds output flag to command
+func withFlagOutput(value string) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optOutput, "o", value, "Output format")
 	}
 }
 
-// withQueryFlag adds query flag to command
-func withQueryFlag() cmdOption {
+// withFlagQuery adds query flag to command
+func withFlagQuery() cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optQuery, "q", "", "Query")
 	}
 }
 
-func withOptions(opts *Opts) cmdOption {
+func withOpts(opts *Opts) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.SetOutput(opts.Stdout)
 		cmd.SetIn(opts.Stdin)
@@ -54,26 +54,6 @@ func withCmd(children ...*Cmd) cmdOption {
 func withFlagDomain(value string, required bool) cmdOption {
 	return func(cmd *cobra.Command) {
 		cmd.Flags().StringP(optDomain, "d", value, "Domain")
-
-		if required {
-			cmd.MarkFlagRequired(optDomain)
-		}
-	}
-}
-
-func withFlagString(name string, required bool, desc string) cmdOption {
-	return func(cmd *cobra.Command) {
-		cmd.Flags().String(name, "", desc)
-
-		if required {
-			cmd.MarkFlagRequired(optDomain)
-		}
-	}
-}
-
-func withFlagStringP(name string, short string, required bool, desc string) cmdOption {
-	return func(cmd *cobra.Command) {
-		cmd.Flags().StringP(name, short, "", desc)
 
 		if required {
 			cmd.MarkFlagRequired(optDomain)
