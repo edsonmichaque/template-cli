@@ -28,10 +28,10 @@ const (
 )
 
 func main() {
-	os.Exit(run())
+	os.Exit(runCmd())
 }
 
-func run() int {
+func runCmd() int {
 	if err := cmd.Run(); err != nil {
 		if cmdErr, ok := err.(cmd.Error); ok {
 			return cmdErr.Code

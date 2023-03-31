@@ -31,7 +31,6 @@ func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
 		execFileFmtPrompt(cfgFmtJSON),
 		execConfirmPrompt("Do you want to save?", true),
 	)
-
 	if err != nil {
 		return nil, "", err
 	}
