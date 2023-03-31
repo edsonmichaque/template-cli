@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/MakeNowJust/heredoc/v2"
@@ -34,6 +35,29 @@ func cmdWrite(cmd *cobra.Command, r io.Reader) error {
 	return nil
 }
 
+func flagContainsValue(flag string, values []string) error {
+	flagValue := viper.GetString(flag)
+
+	for _, value := range values {
+		if flagValue == value {
+			return nil
+		}
+	}
+
+	return fmt.Errorf(`flag "%s" has invalid value "%s"`, flag, flagValue)
+
+}
+
+func chainPreRunFunctions(fn ...func() error) error {
+	for _, preRun := range fn {
+		if err := preRun(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func cmdFoo(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "foo",
@@ -44,8 +68,23 @@ func cmdFoo(opts *Opts) *Cmd {
 			template foo --output=yaml
 			template foo --output=json --query="[].id"
 		`),
+		Args: cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return viper.BindPFlags(cmd.Flags())
+			return chainPreRunFunctions(
+				func() error {
+					return viper.BindPFlags(cmd.Flags())
+				},
+				func() error {
+					return flagContainsValue(
+						optOutput,
+						[]string{
+							outputJSON,
+							outputYAML,
+							outputTable,
+						},
+					)
+				},
+			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			_, err := config.Load()
@@ -84,7 +123,7 @@ func cmdFoo(opts *Opts) *Cmd {
 
 	return initCmd(
 		cmd,
-		withFlagOutput(formatTable),
+		withFlagOutput(outputTable),
 		withFlagQuery(),
 		withOpts(opts),
 	)
