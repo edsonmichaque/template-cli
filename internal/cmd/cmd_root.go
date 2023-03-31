@@ -102,26 +102,6 @@ func cmdRoot(opts *Opts) *Cmd {
 	)
 }
 
-func cfgCfg(env string) (string, error) {
-	var (
-		dir string
-		err error
-	)
-
-	if dir = os.Getenv(envCfgHome); dir != "" {
-		dir, err = os.UserConfigDir()
-		if err != nil {
-			return "", err
-		}
-	}
-
-	cfgDir = filepath.Join(dir, binaryName)
-
-	if env := os.Getenv(envProfile); env != "" {
-		cfgName = env
-	}
-}
-
 func initConfig() {
 	var (
 		cfgFile string
@@ -145,19 +125,19 @@ func initConfig() {
 		cobra.CheckErr(err)
 
 		cfgDir = dir
-	}
+	} else {
+		if os.Getenv(envCfgHome) != "" {
+			dir := os.Getenv(envCfgHome)
+			if dir == "" {
+				dir, err = os.UserConfigDir()
+				cobra.CheckErr(err)
+			}
 
-	if os.Getenv(envCfgHome) != "" {
-		dir := os.Getenv(envCfgHome)
-		if dir == "" {
-			dir, err = os.UserConfigDir()
-			cobra.CheckErr(err)
-		}
+			cfgDir = filepath.Join(dir, binaryName)
 
-		cfgDir = filepath.Join(dir, binaryName)
-
-		if env := os.Getenv(envProfile); env != "" {
-			cfgName = env
+			if env := os.Getenv(envProfile); env != "" {
+				cfgName = env
+			}
 		}
 	}
 
