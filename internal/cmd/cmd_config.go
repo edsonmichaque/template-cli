@@ -114,7 +114,7 @@ func cmdConfigInit(opts *Opts) *Cmd {
 				v.Set(optSandbox, cfg.Sandbox)
 			}
 
-			cfgPath := filepath.Join(home, binName, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
+			cfgPath := filepath.Join(home, binaryName, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
 			if err := v.WriteConfigAs(cfgPath); err != nil {
 				return wrapError(exitFailure, err)
 			}

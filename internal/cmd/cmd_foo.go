@@ -17,11 +17,22 @@
 package cmd
 
 import (
+	"io"
+
 	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/edsonmichaque/template-cli/internal/cmd/formatter"
 	"github.com/edsonmichaque/template-cli/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+func cmdWrite(cmd *cobra.Command, r io.Reader) error {
+	if _, err := io.Copy(cmd.OutOrStdout(), r); err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func cmdFoo(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
@@ -37,12 +48,35 @@ func cmdFoo(opts *Opts) *Cmd {
 			return viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.Load()
+			_, err := config.Load()
 			if err != nil {
 				return wrapError(1, err)
 			}
 
-			cmd.Println(cfg)
+			list := formatter.FooList{
+				formatter.Foo{
+					ID:   1,
+					Name: "First Name",
+					Age:  "19",
+				},
+				formatter.Foo{
+					ID:   2,
+					Name: "First Name",
+					Age:  "19",
+				},
+			}
+
+			f, err := formatter.Format(list, &formatter.Opts{
+				Output: formatter.Output(viper.GetString(optOutput)),
+			})
+
+			if err != nil {
+				return wrapError(1, err)
+			}
+
+			if err := cmdWrite(cmd, f); err != nil {
+				return wrapError(1, err)
+			}
 
 			return nil
 		},
