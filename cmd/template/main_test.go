@@ -60,7 +60,6 @@ func TestBar(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-
 }
 
 type Process struct {
@@ -73,7 +72,6 @@ type Process struct {
 }
 
 func (p Process) ErrContains(s string) bool {
-
 }
 
 func (m *Process) Run() error {

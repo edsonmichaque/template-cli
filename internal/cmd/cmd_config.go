@@ -37,9 +37,6 @@ const (
 )
 
 var (
-	prodBaseURL    = "https://api.dnsimple.com"
-	sandboxBaseURL = "https://api.sandbox.dnsimple.com"
-
 	configProps = map[string]struct{}{
 		optAccount:     {},
 		optBaseURL:     {},
@@ -84,14 +81,12 @@ func cmdConfigInit(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Manage configurations",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			return viper.BindPFlags(cmd.Flags())
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.LoadWithValidation(false)
-			if err != nil {
-				return wrapError(exitFailure, err)
-			}
-
-			home, err := os.UserConfigDir()
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}
@@ -105,25 +100,7 @@ func cmdConfigInit(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			cfgViper := viper.New()
-
-			cfgViper.Set(optAccount, cfg.Account)
-			cfgViper.Set(optAccessToken, cfg.AccessToken)
-
-			if cfg.BaseURL != "" {
-				cfgViper.Set(optBaseURL, cfg.BaseURL)
-			}
-
-			if cfg.Sandbox {
-				cfgViper.Set(optSandbox, cfg.Sandbox)
-			}
-
-			cfgPath := filepath.Join(
-				home,
-				bin,
-				fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)),
-			)
-			if err := cfgViper.WriteConfigAs(cfgPath); err != nil {
+			if err := writeConfig(cfg, ext); err != nil {
 				return wrapError(exitFailure, err)
 			}
 
@@ -135,6 +112,33 @@ func cmdConfigInit(opts *Opts) *Cmd {
 		cmd,
 		withOpts(opts),
 	)
+}
+
+func writeConfig(cfg *config.Config, ext string) error {
+	cfgViper := viper.New()
+
+	cfgViper.Set(optAccount, cfg.Account)
+	cfgViper.Set(optAccessToken, cfg.AccessToken)
+
+	if cfg.BaseURL != "" {
+		cfgViper.Set(optBaseURL, cfg.BaseURL)
+	}
+
+	if cfg.Sandbox {
+		cfgViper.Set(optSandbox, cfg.Sandbox)
+	}
+
+	home, err := os.UserConfigDir()
+	if err != nil {
+		return wrapError(exitFailure, err)
+	}
+
+	target := filepath.Join(home, bin, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
+	if err := cfgViper.WriteConfigAs(target); err != nil {
+		return wrapError(exitFailure, err)
+	}
+
+	return nil
 }
 
 func cmdConfigGet(opts *Opts) *Cmd {

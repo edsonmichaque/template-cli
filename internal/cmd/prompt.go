@@ -17,127 +17,107 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/edsonmichaque/template-cli/internal/config"
 )
 
-func runConfirm(domain string) bool {
-	confirm := false
-	prompt := &survey.Confirm{
-		Message: fmt.Sprintf("Do you want to delete domain %s?", domain),
-	}
-
-	if err := survey.AskOne(prompt, &confirm); err != nil {
-		return false
-	}
-
-	return confirm
-}
-
 func promptConfig(c *config.Config) (*config.Config, string, error) {
-	/*baseURL := prodBaseURL
+	res, err := runPrompt(
+		promptAccountID(c.Account),
+		promptAccessToken(c.AccessToken),
+		promptBaseURL("https://example.con"),
+		promptFileFormat(cfgFormatJSON),
+		promptConfirm("Do you want to save?", true),
+	)
 
-	accountID, err := promptAccountID(c.Account)
 	if err != nil {
 		return nil, "", err
 	}
 
-	accessToken, err := promptAccessToken(c.AccessToken)
-	if err != nil {
-		return nil, "", err
+	var cfg config.Config
+
+	if value := res.GetString(optAccount); value != "" {
+		cfg.Account = value
 	}
 
-	env, err := promptEnvironment(envProd)
-	if err != nil {
-		return nil, "", err
+	if value := res.GetString(optAccessToken); value != "" {
+		cfg.AccessToken = value
 	}
 
-	if env == envSandbox {
-		baseURL = sandboxBaseURL
+	if value := res.GetString(optBaseURL); value != "" {
+		cfg.BaseURL = value
 	}
 
-	if env == envDev {
-		baseURL, err = promptBaseURL(prodBaseURL)
-		if err != nil {
-			return nil, "", err
+	var fileFormat string
+	if value := res.GetString(optFormat); value != "" {
+		fileFormat = value
+	}
+
+	fmt.Printf("%#v\n", cfg)
+
+	return &cfg, fileFormat, nil
+}
+
+func promptAccessToken(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptResult, error) {
+
+		prompt := &survey.Input{
+			Message: "Access Token",
+			Default: value,
 		}
-	}
 
-	fileFormat, err := promptFileFormat(configFormatJSON)
-	if err != nil {
-		return nil, "", err
-	}
+		var token string
+		if err := survey.AskOne(prompt, &token); err != nil {
+			return nil, err
+		}
 
-	confirmation, err := promptConfirmation("Do you want to save?", true)
-	if err != nil {
-		return nil, "", err
-	}
-
-	if !confirmation {
-		return nil, "", errors.New("did not confirm")
-	}
-
-	cfg := config.Config{
-		Account:     accountID,
-		AccessToken: accessToken,
-	}
-
-	if env == envDev {
-		cfg.BaseURL = baseURL
-	}
-
-	if env == envSandbox {
-		cfg.Sandbox = true
-	}
-
-	return &cfg, fileFormat, nil*/
-	return nil, "", errors.New("")
+		return &promptResult{
+			Name:  optAccessToken,
+			Value: token,
+		}, nil
+	})
 }
 
-func promptAccessToken(value string) (string, error) {
-	prompt := &survey.Input{
-		Message: "Access Token",
-		Default: value,
-	}
+func promptAccountID(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptResult, error) {
+		prompt := &survey.Input{
+			Message: "Account ID",
+			Default: value,
+		}
 
-	var token string
-	if err := survey.AskOne(prompt, &token); err != nil {
-		return "", err
-	}
+		var accountID string
+		if err := survey.AskOne(prompt, &accountID); err != nil {
+			return nil, err
+		}
 
-	return token, nil
+		return &promptResult{
+			Name:  optAccount,
+			Value: accountID,
+		}, nil
+	})
 }
 
-func promptAccountID(value string) (string, error) {
-	prompt := &survey.Input{
-		Message: "Account ID",
-		Default: value,
-	}
+func promptEnvironment(value string) runPromptFunc {
+	return runPromptFunc(func() (*promptResult, error) {
 
-	var accountID string
-	if err := survey.AskOne(prompt, &accountID); err != nil {
-		return "", err
-	}
+		prompt := &survey.Select{
+			Message: "Environment",
+			Options: []string{envProd, envSandbox, envDev},
+			Default: value,
+		}
 
-	return accountID, nil
-}
+		var env string
+		if err := survey.AskOne(prompt, &env); err != nil {
+			return nil, err
+		}
 
-func promptEnvironment(value string) (string, error) {
-	prompt := &survey.Select{
-		Message: "Environment",
-		Options: []string{envProd, envSandbox, envDev},
-		Default: value,
-	}
-
-	var env string
-	if err := survey.AskOne(prompt, &env); err != nil {
-		return "", err
-	}
-
-	return env, nil
+		return &promptResult{
+			Name:  optAccessToken,
+			Value: env,
+		}, nil
+	})
 }
 
 func promptBaseURL(value string) runPromptFunc {
@@ -153,7 +133,7 @@ func promptBaseURL(value string) runPromptFunc {
 		}
 
 		return &promptResult{
-			Name:  "format",
+			Name:  optBaseURL,
 			Value: baseURL,
 		}, nil
 	})
@@ -173,25 +153,10 @@ func promptFileFormat(value string) runPromptFunc {
 		}
 
 		return &promptResult{
-			Name:  "format",
+			Name:  optFormat,
 			Value: fileFormat,
 		}, nil
 	})
-}
-
-func promptConfirmation(msg string, value bool) (bool, error) {
-	var confirmation bool
-
-	prompt := &survey.Confirm{
-		Message: msg,
-		Default: value,
-	}
-
-	if err := survey.AskOne(prompt, &confirmation); err != nil {
-		return false, err
-	}
-
-	return confirmation, nil
 }
 
 type runPromptResult map[string]interface{}
@@ -204,7 +169,7 @@ func (r runPromptResult) Get(key string) interface{} {
 	return nil
 }
 
-func (r runPromptResult) GetSting(key string) string {
+func (r runPromptResult) GetString(key string) string {
 	value := r.Get(key)
 	if value == nil {
 		return ""

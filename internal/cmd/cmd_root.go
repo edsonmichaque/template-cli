@@ -36,17 +36,13 @@ var (
 const (
 	bin               = "template"
 	defaultProfile    = "default"
+	envConfigFile     = "TEMPLATE_CONFIG_FILE"
+	envConfigHome     = "XDG_CONFIG_HOME"
 	envDev            = "DEV"
 	envPrefix         = "TEMPLATE"
 	envProd           = "PROD"
-	envSandbox        = "SANDBOX"
-	envConfigFile     = "TEMPLATE_CONFIG_FILE"
 	envProfile        = "TEMPLATE_PROFILE"
-	envConfigHome     = "XDG_CONFIG_HOME"
-	outputJSON        = "json"
-	outputTable       = "table"
-	outputText        = "text"
-	outputYAML        = "yaml"
+	envSandbox        = "SANDBOX"
 	optAccessToken    = "access-token"
 	optAccount        = "account"
 	optBaseURL        = "base-url"
@@ -54,6 +50,8 @@ const (
 	optConfigFile     = "config-file"
 	optConfirm        = "confirm"
 	optDomain         = "domain"
+	optFormat         = "format"
+	optFromFile       = "from-file"
 	optOutput         = "output"
 	optPage           = "page"
 	optPerPage        = "per-page"
@@ -61,7 +59,10 @@ const (
 	optQuery          = "query"
 	optRecordID       = "record-id"
 	optSandbox        = "sandbox"
-	optFromFile       = "from-file"
+	outputJSON        = "json"
+	outputTable       = "table"
+	outputText        = "text"
+	outputYAML        = "yaml"
 	pathConfigFile    = "/etc/template"
 )
 
@@ -236,7 +237,6 @@ func flagContains(flag string, values []string) error {
 	}
 
 	return fmt.Errorf(`flag "%s" has invalid value "%s"`, flag, flagValue)
-
 }
 
 func preRunE(fn ...func() error) error {
