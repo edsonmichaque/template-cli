@@ -23,7 +23,7 @@ import (
 	"github.com/edsonmichaque/template-cli/internal/config"
 )
 
-func promptConfig(c *config.Config) (*config.Config, string, error) {
+func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
 	res, err := runPrompt(
 		promptAccountID(c.Account),
 		promptAccessToken(c.AccessToken),

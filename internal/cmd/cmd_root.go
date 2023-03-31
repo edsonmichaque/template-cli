@@ -34,7 +34,7 @@ var (
 )
 
 const (
-	bin               = "template"
+	cmdName           = "template"
 	defaultProfile    = "default"
 	envConfigFile     = "TEMPLATE_CONFIG_FILE"
 	envConfigHome     = "XDG_CONFIG_HOME"
@@ -90,7 +90,7 @@ func runWithOpts(opts *Opts) error {
 
 func cmdRoot(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
-		Use: bin,
+		Use: cmdName,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return viper.BindPFlags(cmd.PersistentFlags())
 		},
@@ -138,7 +138,7 @@ func initCfg() {
 				cobra.CheckErr(err)
 			}
 
-			cfgDir = filepath.Join(dir, bin)
+			cfgDir = filepath.Join(dir, cmdName)
 
 			if env := os.Getenv(envProfile); env != "" {
 				cfgName = env

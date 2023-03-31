@@ -23,6 +23,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	exitFailure = 1
+)
+
 func cmdBar(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "bar",
@@ -67,7 +71,3 @@ func cmdBar(opts *Opts) *Cmd {
 		withOpts(opts),
 	)
 }
-
-const (
-	exitFailure = 1
-)

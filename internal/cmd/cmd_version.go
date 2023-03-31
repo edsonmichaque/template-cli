@@ -44,7 +44,7 @@ func cmdVersion(opts *Opts) *Cmd {
 			cmd.Printf(
 				tpl,
 				build.Version,
-				prodBaseURL,
+				"https://example.com",
 				"v1",
 				runtime.GOOS,
 				runtime.GOARCH,

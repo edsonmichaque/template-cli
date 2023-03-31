@@ -91,16 +91,23 @@ func cmdConfigInit(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			profile := viper.GetString(optProfile)
-
-			cmd.Println(fmt.Sprintf("Configuring profile '%s'", profile))
-
-			cfg, ext, err := promptConfig(cfg)
+			cfg, ext, err := runConfigPrompt(cfg)
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}
 
-			if err := writeConfig(cfg, ext); err != nil {
+			cfgDir, err := os.UserConfigDir()
+			if err != nil {
+				return wrapError(exitFailure, err)
+			}
+
+			target := filepath.Join(
+				cfgDir,
+				cmdName,
+				fmt.Sprintf("%s.%s", viper.GetString(optProfile), strings.ToLower(ext)),
+			)
+
+			if err := writeConfig(cfg, target); err != nil {
 				return wrapError(exitFailure, err)
 			}
 
@@ -114,7 +121,7 @@ func cmdConfigInit(opts *Opts) *Cmd {
 	)
 }
 
-func writeConfig(cfg *config.Config, ext string) error {
+func writeConfig(cfg *config.Config, target string) error {
 	cfgViper := viper.New()
 
 	cfgViper.Set(optAccount, cfg.Account)
@@ -128,12 +135,6 @@ func writeConfig(cfg *config.Config, ext string) error {
 		cfgViper.Set(optSandbox, cfg.Sandbox)
 	}
 
-	home, err := os.UserConfigDir()
-	if err != nil {
-		return wrapError(exitFailure, err)
-	}
-
-	target := filepath.Join(home, bin, fmt.Sprintf("%s.%s", profile, strings.ToLower(ext)))
 	if err := cfgViper.WriteConfigAs(target); err != nil {
 		return wrapError(exitFailure, err)
 	}
