@@ -61,7 +61,7 @@ var (
 	}
 )
 
-func cmdConfig(opts *Opts) *Cmd {
+func cmdCfg(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage configurations",
@@ -71,14 +71,14 @@ func cmdConfig(opts *Opts) *Cmd {
 		cmd,
 		withOpts(opts),
 		withCmd(
-			cmdConfigInit(opts),
-			cmdConfigGet(opts),
-			cmdConfigSet(opts),
+			cmdCfgInit(opts),
+			cmdCfgGet(opts),
+			cmdCfgSet(opts),
 		),
 	)
 }
 
-func cmdConfigInit(opts *Opts) *Cmd {
+func cmdCfgInit(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Manage configurations",
@@ -143,14 +143,14 @@ func writeConfig(cfg *config.Config, target string) error {
 	return nil
 }
 
-func cmdConfigGet(opts *Opts) *Cmd {
+func cmdCfgGet(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "get",
 		Short: "Manage configurations",
 		Args: func(cmd *cobra.Command, args []string) error {
 			prop := args[0]
 
-			return preRunE(
+			return preRun(
 				func() error {
 					return cobra.ExactArgs(1)(cmd, args)
 				},
@@ -173,11 +173,13 @@ func cmdConfigGet(opts *Opts) *Cmd {
 				BaseURL:     "https://example.com",
 			}
 
-			resp, err := formatter.Format(formatter.ToConfigList(cfg), &formatter.Opts{
-				Output: formatter.Output(
-					viper.GetString(optOutput),
-				),
-			})
+			resp, err := formatter.Format(
+				formatter.ToConfigList(cfg),
+				&formatter.Opts{
+					Output: formatter.Output(
+						viper.GetString(optOutput),
+					),
+				})
 			if err != nil {
 				return wrapError(1, err)
 			}
@@ -197,12 +199,12 @@ func cmdConfigGet(opts *Opts) *Cmd {
 	)
 }
 
-func cmdConfigSet(opts *Opts) *Cmd {
+func cmdCfgSet(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Manage configurations",
 		Args: func(cmd *cobra.Command, args []string) error {
-			return preRunE(
+			return preRun(
 				func() error {
 					return cobra.ExactArgs(2)(cmd, args)
 				},

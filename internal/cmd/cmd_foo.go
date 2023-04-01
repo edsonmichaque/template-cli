@@ -36,7 +36,7 @@ func cmdFoo(opts *Opts) *Cmd {
 		`),
 		Args: cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return preRunE(
+			return preRun(
 				func() error {
 					return viper.BindPFlags(cmd.Flags())
 				},
@@ -53,7 +53,7 @@ func cmdFoo(opts *Opts) *Cmd {
 			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := config.Load()
+			_, err := config.Init()
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}

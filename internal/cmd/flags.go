@@ -30,6 +30,7 @@ func withFlagsGlobal() cmdOption {
 		cmd.PersistentFlags().String(optBaseURL, "", "Base URL")
 		cmd.PersistentFlags().StringVar(&profile, optProfile, defaultProfile, "Profile")
 		cmd.PersistentFlags().StringVarP(&configFile, optConfigFile, "c", "", "Configuration file")
+
 		cmd.MarkFlagsMutuallyExclusive(optBaseURL, optSandbox)
 
 		viper.SetEnvPrefix(envPrefix)

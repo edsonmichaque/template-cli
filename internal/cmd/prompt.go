@@ -24,7 +24,7 @@ import (
 )
 
 func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
-	res, err := prompt(
+	res, err := execPrompt(
 		execAccountPrompt(c.Account),
 		execAccessTokenPrompt(c.AccessToken),
 		execBaseURLPrompt("https://example.con"),
@@ -271,7 +271,7 @@ func (rpr promptResult) HasKey(key string) bool {
 	return ok
 }
 
-func prompt(promptRunners ...promptRunner) (promptResult, error) {
+func execPrompt(promptRunners ...promptRunner) (promptResult, error) {
 	result := make(map[string]interface{})
 
 	for _, r := range promptRunners {

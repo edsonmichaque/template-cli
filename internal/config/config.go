@@ -22,7 +22,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Load() (*Config, error) {
+func Init() (*Config, error) {
 	return LoadWithValidation(true)
 }
 

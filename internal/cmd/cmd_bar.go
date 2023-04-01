@@ -41,12 +41,12 @@ func cmdBar(opts *Opts) *Cmd {
 			return viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.Load()
+			cfg, err := config.Init()
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}
 
-			promptRes, err := prompt(
+			promptRes, err := execPrompt(
 				execConfirmPrompt("Do you want to do it?", false),
 				execConfirmPrompt("Do you want to do it again?", false),
 				execConfirmPrompt("Do you want to do it again again?", false),

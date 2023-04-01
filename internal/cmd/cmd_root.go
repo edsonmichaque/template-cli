@@ -36,8 +36,8 @@ var (
 const (
 	cmdName           = "template"
 	defaultProfile    = "main"
-	envConfigFile     = "TEMPLATE_CONFIG_FILE"
-	envConfigHome     = "XDG_CONFIG_HOME"
+	envCfgFile        = "TEMPLATE_CONFIG_FILE"
+	envCfgHome        = "XDG_CONFIG_HOME"
 	envDev            = "DEV"
 	envPrefix         = "TEMPLATE"
 	envProd           = "PROD"
@@ -102,7 +102,7 @@ func cmdRoot(opts *Opts) *Cmd {
 		cmd,
 		withCmd(cmdFoo(opts)),
 		withCmd(cmdBar(opts)),
-		withCmd(cmdConfig(opts)),
+		withCmd(cmdCfg(opts)),
 		withCmd(cmdVersion(opts)),
 		withFlagsGlobal(),
 	)
@@ -120,20 +120,20 @@ func initCfg() {
 		cfgFile = configFile
 	}
 
-	if path := os.Getenv(envConfigFile); path != "" && configFile == "" {
+	if path := os.Getenv(envCfgFile); path != "" && configFile == "" {
 		cfgFile = path
 	}
 
 	cfgName = defaultProfile
 
-	if dir := os.Getenv(envConfigHome); dir != "" {
+	if dir := os.Getenv(envCfgHome); dir != "" {
 		dir, err = os.UserConfigDir()
 		cobra.CheckErr(err)
 
 		cfgDir = dir
 	} else {
-		if os.Getenv(envConfigHome) != "" {
-			dir := os.Getenv(envConfigHome)
+		if os.Getenv(envCfgHome) != "" {
+			dir := os.Getenv(envCfgHome)
 			if dir == "" {
 				dir, err = os.UserConfigDir()
 				cobra.CheckErr(err)
@@ -238,7 +238,7 @@ func flagContains(flag string, values []string) error {
 	return fmt.Errorf(`flag "%s" has invalid value "%s"`, flag, flagValue)
 }
 
-func preRunE(fn ...func() error) error {
+func preRun(fn ...func() error) error {
 	for _, preRun := range fn {
 		if err := preRun(); err != nil {
 			return err
