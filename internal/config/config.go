@@ -22,18 +22,23 @@ import (
 	"github.com/spf13/viper"
 )
 
-func Init() (*Config, error) {
-	return LoadWithValidation(true)
+// InitWithValidation
+func InitWithValidation() (*Config, error) {
+	return initConfig(true)
 }
 
-func LoadWithValidation(validate bool) (*Config, error) {
+func Init(validate bool) (*Config, error) {
+	return initConfig(validate)
+}
+
+func initConfig(validate bool) (*Config, error) {
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {
 		return nil, err
 	}
 
 	if validate {
-		if err := cfg.Validate(); err != nil {
+		if err := cfg.validate(); err != nil {
 			return nil, err
 		}
 	}
@@ -48,7 +53,7 @@ type Config struct {
 	BaseURL     string `mapstructure:"base-url"`
 }
 
-func (c Config) Validate() error {
+func (c Config) validate() error {
 	if c.Account == "" {
 		return errors.New("account id is required")
 	}

@@ -89,7 +89,7 @@ func cmdCfgInit(opts *Opts) *Cmd {
 			return viper.BindPFlags(cmd.Flags())
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.LoadWithValidation(false)
+			cfg, err := config.Init(false)
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}

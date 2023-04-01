@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// cmdVersion
 func cmdVersion(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "version",

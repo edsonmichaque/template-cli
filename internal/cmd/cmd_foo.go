@@ -54,7 +54,7 @@ func cmdFoo(opts *Opts) *Cmd {
 			)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_, err := config.Init()
+			_, err := config.InitWithValidation()
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}
