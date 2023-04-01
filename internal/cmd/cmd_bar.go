@@ -24,9 +24,11 @@ import (
 )
 
 const (
-	exitFailure = 1
+	exitSuccess = iota
+	exitFailure
 )
 
+// cmdBar
 func cmdBar(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "bar",
@@ -46,7 +48,7 @@ func cmdBar(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			promptRes, err := execPrompt(
+			promptResp, err := execPrompt(
 				execConfirmPrompt("Do you want to do it?", false),
 				execConfirmPrompt("Do you want to do it again?", false),
 				execConfirmPrompt("Do you want to do it again again?", false),
@@ -54,11 +56,11 @@ func cmdBar(opts *Opts) *Cmd {
 				execBaseURLPrompt("https://example.com"),
 			)
 			if err != nil {
-				return err
+				return wrapError(exitFailure, err)
 			}
 
 			cmd.Printf("%#v\n", cfg)
-			cmd.Printf("%#v\n", promptRes)
+			cmd.Printf("%#v\n", promptResp)
 
 			return nil
 		},

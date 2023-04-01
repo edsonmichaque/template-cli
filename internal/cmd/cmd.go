@@ -22,26 +22,31 @@ import (
 	"os"
 )
 
-type Error struct {
+// CmdError
+type CmdError struct {
 	Code int
 	Err  error
 }
 
-func (e Error) Error() string {
+// Error
+func (e CmdError) Error() string {
 	return e.Err.Error()
 }
 
-func newError(code int, err string) Error {
+// newError
+func newError(code int, err string) CmdError {
 	return wrapError(code, errors.New(err))
 }
 
-func wrapError(code int, err error) Error {
-	return Error{
+// wrapError
+func wrapError(code int, err error) CmdError {
+	return CmdError{
 		Code: code,
 		Err:  err,
 	}
 }
 
+// InitOpts
 func InitOpts() (*Opts, error) {
 	wd, err := os.Getwd()
 	if err != nil {
@@ -56,6 +61,7 @@ func InitOpts() (*Opts, error) {
 	}, nil
 }
 
+// Opts
 type Opts struct {
 	Stdout  io.Writer
 	Stdin   io.Reader
@@ -63,6 +69,7 @@ type Opts struct {
 	WorkDir string
 }
 
+// Validate
 func (c Opts) Validate() error {
 	return nil
 }

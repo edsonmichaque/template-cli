@@ -61,6 +61,7 @@ var (
 	}
 )
 
+// cmdCfg
 func cmdCfg(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "config",
@@ -78,10 +79,11 @@ func cmdCfg(opts *Opts) *Cmd {
 	)
 }
 
+// cmdCfgInit
 func cmdCfgInit(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "Manage configurations",
+		Short: "Initialize configuration",
 		Args:  cobra.ExactArgs(0),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return viper.BindPFlags(cmd.Flags())
@@ -92,7 +94,7 @@ func cmdCfgInit(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			cfg, ext, err := runConfigPrompt(cfg)
+			cfg, ext, err := execConfigPrompt(cfg)
 			if err != nil {
 				return wrapError(exitFailure, err)
 			}
@@ -105,10 +107,14 @@ func cmdCfgInit(opts *Opts) *Cmd {
 			target := filepath.Join(
 				cfgDir,
 				cmdName,
-				fmt.Sprintf("%s.%s", viper.GetString(optProfile), strings.ToLower(ext)),
+				fmt.Sprintf(
+					"%s.%s",
+					viper.GetString(optProfile),
+					strings.ToLower(ext),
+				),
 			)
 
-			if err := writeConfig(cfg, target); err != nil {
+			if err := writeCfg(cfg, target); err != nil {
 				return wrapError(exitFailure, err)
 			}
 
@@ -122,27 +128,29 @@ func cmdCfgInit(opts *Opts) *Cmd {
 	)
 }
 
-func writeConfig(cfg *config.Config, target string) error {
-	cfgViper := viper.New()
+// writeCfg
+func writeCfg(cfg *config.Config, dst string) error {
+	v := viper.New()
 
-	cfgViper.Set(optAccount, cfg.Account)
-	cfgViper.Set(optAccessToken, cfg.AccessToken)
+	v.Set(optAccount, cfg.Account)
+	v.Set(optAccessToken, cfg.AccessToken)
 
 	if cfg.BaseURL != "" {
-		cfgViper.Set(optBaseURL, cfg.BaseURL)
+		v.Set(optBaseURL, cfg.BaseURL)
 	}
 
 	if cfg.Sandbox {
-		cfgViper.Set(optSandbox, cfg.Sandbox)
+		v.Set(optSandbox, cfg.Sandbox)
 	}
 
-	if err := cfgViper.WriteConfigAs(target); err != nil {
+	if err := v.WriteConfigAs(dst); err != nil {
 		return wrapError(exitFailure, err)
 	}
 
 	return nil
 }
 
+// cmdCfgGet
 func cmdCfgGet(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "get",
@@ -150,7 +158,7 @@ func cmdCfgGet(opts *Opts) *Cmd {
 		Args: func(cmd *cobra.Command, args []string) error {
 			prop := args[0]
 
-			return preRun(
+			return cmdPreRun(
 				func() error {
 					return cobra.ExactArgs(1)(cmd, args)
 				},
@@ -179,12 +187,13 @@ func cmdCfgGet(opts *Opts) *Cmd {
 					Output: formatter.Output(
 						viper.GetString(optOutput),
 					),
-				})
+				},
+			)
 			if err != nil {
 				return wrapError(1, err)
 			}
 
-			if err := print(cmd, resp); err != nil {
+			if err := cmdPrint(cmd, resp); err != nil {
 				return wrapError(1, err)
 			}
 
@@ -199,12 +208,13 @@ func cmdCfgGet(opts *Opts) *Cmd {
 	)
 }
 
+// cmdCfgSet
 func cmdCfgSet(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "set",
 		Short: "Manage configurations",
 		Args: func(cmd *cobra.Command, args []string) error {
-			return preRun(
+			return cmdPreRun(
 				func() error {
 					return cobra.ExactArgs(2)(cmd, args)
 				},

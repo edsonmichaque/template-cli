@@ -67,15 +67,18 @@ const (
 	pathConfigFile    = "/etc/template"
 )
 
+// init
 func init() {
 	cobra.OnInitialize(initCfg)
 	viperBindFlags()
 }
 
+// Run
 func Run() error {
 	return run()
 }
 
+// run
 func run() error {
 	opts, err := InitOpts()
 	if err != nil {
@@ -85,10 +88,12 @@ func run() error {
 	return runWithOpts(opts)
 }
 
+// runWithOpts
 func runWithOpts(opts *Opts) error {
 	return cmdRoot(opts).Execute()
 }
 
+// cmdRoot
 func cmdRoot(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use: cmdName,
@@ -108,6 +113,7 @@ func cmdRoot(opts *Opts) *Cmd {
 	)
 }
 
+// initCfg
 func initCfg() {
 	var (
 		cfgFile string
@@ -163,12 +169,15 @@ func initCfg() {
 	}
 }
 
+// Cmd
 type Cmd struct {
 	*cobra.Command
 }
 
+// cmdOption
 type cmdOption func(*cobra.Command)
 
+// initCmd
 func initCmd(cmd *cobra.Command, opts ...cmdOption) *Cmd {
 	for _, opt := range opts {
 		opt(cmd)
@@ -179,6 +188,7 @@ func initCmd(cmd *cobra.Command, opts ...cmdOption) *Cmd {
 	}
 }
 
+// viperBindFlags
 func viperBindFlags() {
 	for _, env := range os.Environ() {
 		envParts := strings.Split(env, "=")
@@ -190,7 +200,7 @@ func viperBindFlags() {
 			continue
 		}
 
-		flag, err := envToFlag(env)
+		flag, err := convertEnvToFlag(env)
 		if err != nil {
 			continue
 		}
@@ -199,13 +209,15 @@ func viperBindFlags() {
 	}
 }
 
-func flagToEnv(flag string) string {
+// convertFlagToEnv
+func convertFlagToEnv(flag string) string {
 	env := strings.ToUpper(strings.ReplaceAll(flag, "-", "_"))
 
 	return fmt.Sprintf("%s_%s", envPrefix, env)
 }
 
-func envToFlag(env string) (string, error) {
+// convertEnvToFlag
+func convertEnvToFlag(env string) (string, error) {
 	envParts := strings.Split(
 		strings.TrimPrefix(env, fmt.Sprintf("%s_", envPrefix)), "=",
 	)
@@ -218,7 +230,8 @@ func envToFlag(env string) (string, error) {
 	return flag, nil
 }
 
-func print(cmd *cobra.Command, r io.Reader) error {
+// cmdPrint
+func cmdPrint(cmd *cobra.Command, r io.Reader) error {
 	if _, err := io.Copy(cmd.OutOrStdout(), r); err != nil {
 		return err
 	}
@@ -226,6 +239,7 @@ func print(cmd *cobra.Command, r io.Reader) error {
 	return nil
 }
 
+// flagContains
 func flagContains(flag string, values []string) error {
 	flagValue := viper.GetString(flag)
 
@@ -238,7 +252,8 @@ func flagContains(flag string, values []string) error {
 	return fmt.Errorf(`flag "%s" has invalid value "%s"`, flag, flagValue)
 }
 
-func preRun(fn ...func() error) error {
+// cmdPreRun
+func cmdPreRun(fn ...func() error) error {
 	for _, preRun := range fn {
 		if err := preRun(); err != nil {
 			return err

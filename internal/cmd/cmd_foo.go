@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// cmdFoo
 func cmdFoo(opts *Opts) *Cmd {
 	cmd := &cobra.Command{
 		Use:   "foo",
@@ -36,7 +37,7 @@ func cmdFoo(opts *Opts) *Cmd {
 		`),
 		Args: cobra.NoArgs,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return preRun(
+			return cmdPreRun(
 				func() error {
 					return viper.BindPFlags(cmd.Flags())
 				},
@@ -82,7 +83,7 @@ func cmdFoo(opts *Opts) *Cmd {
 				return wrapError(exitFailure, err)
 			}
 
-			if err := print(cmd, fooOutput); err != nil {
+			if err := cmdPrint(cmd, fooOutput); err != nil {
 				return wrapError(exitFailure, err)
 			}
 

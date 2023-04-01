@@ -33,7 +33,7 @@ func main() {
 
 func runCmd() int {
 	if err := cmd.Run(); err != nil {
-		if cmdErr, ok := err.(cmd.Error); ok {
+		if cmdErr, ok := err.(cmd.CmdError); ok {
 			return cmdErr.Code
 		}
 

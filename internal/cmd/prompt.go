@@ -23,7 +23,8 @@ import (
 	"github.com/edsonmichaque/template-cli/internal/config"
 )
 
-func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
+// execConfigPrompt
+func execConfigPrompt(c *config.Config) (*config.Config, string, error) {
 	res, err := execPrompt(
 		execAccountPrompt(c.Account),
 		execAccessTokenPrompt(c.AccessToken),
@@ -59,6 +60,7 @@ func runConfigPrompt(c *config.Config) (*config.Config, string, error) {
 	return &cfg, format, nil
 }
 
+// execAccessTokenPrompt
 func execAccessTokenPrompt(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var token string
@@ -80,6 +82,7 @@ func execAccessTokenPrompt(value string) runPromptFunc {
 	})
 }
 
+// execAccountPrompt
 func execAccountPrompt(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var account string
@@ -101,6 +104,7 @@ func execAccountPrompt(value string) runPromptFunc {
 	})
 }
 
+// execEnvPrompt
 func execEnvPrompt(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var env string
@@ -127,6 +131,7 @@ func execEnvPrompt(value string) runPromptFunc {
 	})
 }
 
+// execBaseURLPrompt
 func execBaseURLPrompt(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var url string
@@ -148,6 +153,7 @@ func execBaseURLPrompt(value string) runPromptFunc {
 	})
 }
 
+// execFileFmtPrompt
 func execFileFmtPrompt(value string) runPromptFunc {
 	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var format string
@@ -174,6 +180,7 @@ func execFileFmtPrompt(value string) runPromptFunc {
 	})
 }
 
+// execConfirmPrompt
 func execConfirmPrompt(msg string, value bool) runPromptFunc {
 	return runPromptFunc(func() (*promptRunnerResult, error) {
 		var confirmation bool
@@ -195,24 +202,30 @@ func execConfirmPrompt(msg string, value bool) runPromptFunc {
 	})
 }
 
+// promptRunnerResult
 type promptRunnerResult struct {
 	Name  string
 	Value interface{}
 }
 
+// promptRunner
 type promptRunner interface {
 	runPrompt() (*promptRunnerResult, error)
 }
 
+// runPromptFunc
 type runPromptFunc func() (*promptRunnerResult, error)
 
+// runPrompt
 func (rpf runPromptFunc) runPrompt() (*promptRunnerResult, error) {
 	return rpf()
 }
 
-type promptResult map[string]interface{}
+// promptResponse
+type promptResponse map[string]interface{}
 
-func (rpr promptResult) Get(key string) interface{} {
+// Get
+func (rpr promptResponse) Get(key string) interface{} {
 	if s, ok := rpr[key]; ok {
 		return s
 	}
@@ -220,7 +233,8 @@ func (rpr promptResult) Get(key string) interface{} {
 	return nil
 }
 
-func (rpr promptResult) GetString(key string) string {
+// GetString
+func (rpr promptResponse) GetString(key string) string {
 	value := rpr.Get(key)
 	if value == nil {
 		return ""
@@ -229,7 +243,8 @@ func (rpr promptResult) GetString(key string) string {
 	return value.(string)
 }
 
-func (rpr promptResult) GetInt(key string) int {
+// GetInt
+func (rpr promptResponse) GetInt(key string) int {
 	value := rpr.Get(key)
 	if value == nil {
 		return 0
@@ -238,7 +253,8 @@ func (rpr promptResult) GetInt(key string) int {
 	return value.(int)
 }
 
-func (rpr promptResult) GetBool(key string) bool {
+// GetBool
+func (rpr promptResponse) GetBool(key string) bool {
 	value := rpr.Get(key)
 	if value == nil {
 		return false
@@ -247,7 +263,8 @@ func (rpr promptResult) GetBool(key string) bool {
 	return value.(bool)
 }
 
-func (rpr promptResult) GetInt64(key string) int64 {
+// GetInt64
+func (rpr promptResponse) GetInt64(key string) int64 {
 	value := rpr.Get(key)
 	if value == nil {
 		return 0
@@ -256,7 +273,8 @@ func (rpr promptResult) GetInt64(key string) int64 {
 	return value.(int64)
 }
 
-func (rpr promptResult) GetInt32(key string) int32 {
+// GetInt32
+func (rpr promptResponse) GetInt32(key string) int32 {
 	value := rpr.Get(key)
 	if value == nil {
 		return 0
@@ -265,17 +283,19 @@ func (rpr promptResult) GetInt32(key string) int32 {
 	return value.(int32)
 }
 
-func (rpr promptResult) HasKey(key string) bool {
+// HasKey
+func (rpr promptResponse) HasKey(key string) bool {
 	_, ok := rpr[key]
 
 	return ok
 }
 
-func execPrompt(promptRunners ...promptRunner) (promptResult, error) {
+// execPrompt
+func execPrompt(runners ...promptRunner) (promptResponse, error) {
 	result := make(map[string]interface{})
 
-	for _, r := range promptRunners {
-		res, err := r.runPrompt()
+	for _, runner := range runners {
+		res, err := runner.runPrompt()
 		if err != nil {
 			return nil, err
 		}
